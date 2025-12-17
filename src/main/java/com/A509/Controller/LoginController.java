@@ -17,9 +17,7 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
-            // Gọi service, nhận về AuthResponse (Token + UserDTO)
             AuthDTO response = loginService.authenticateAndGetToken(loginDTO);
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Đăng nhập thất bại: " + e.getMessage());

@@ -25,39 +25,40 @@ public class LoginService {
     private UserRepository userRepository;
 
     public AuthDTO authenticateAndGetToken(LoginDTO loginDTO) {
-        // 1. Xác thực Username/Password
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
         );
 
         if (authentication.isAuthenticated()) {
-            // 2. Nếu đúng -> Tạo Token
+            User user = userRepository.findByUsername(loginDTO.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy User!"));
+
+            if (!user.isStatus()) {
+                throw new RuntimeException("Tài khoản đã bị khóa! Vui lòng liên hệ Admin.");
+            }
+
             String token = jwtUntilHelper.generateToken(loginDTO.getUsername());
 
-            // 3. Lấy thông tin User từ DB
-            User user = userRepository.findByUsername(loginDTO.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            // 4. Map Entity -> UserDTO
-            UserDTO userDTO = UserDTO.builder()
-                    .id(user.getId())
-                    .username(user.getUsername())
-                    .email(user.getEmail())
-                    .fullName(user.getFullName())
-                    .phoneNumber(user.getPhoneNumber())
-                    .status(user.isStatus())
-                    .roleName(user.getRole().getName()) // Map Role Object -> String Name
-                    .createdAt(user.getCreatedAt())
-                    .updatedAt(user.getUpdatedAt())
-                    .build();
-
-            // 5. Trả về Token kèm UserDTO
             return AuthDTO.builder()
                     .token(token)
-                    .userInfo(userDTO)
+                    .userInfo(convertToUserDTO(user))
                     .build();
         } else {
-            throw new RuntimeException("Xác thực thất bại");
+            throw new RuntimeException("Đăng nhập thất bại: Sai tên đăng nhập hoặc mật khẩu.");
         }
+    }
+
+    private UserDTO convertToUserDTO(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .status(user.isStatus())
+                .roleName(user.getRole() != null ? user.getRole().getName() : "UNKNOWN")
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
     }
 }

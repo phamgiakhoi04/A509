@@ -1,5 +1,6 @@
 package com.A509.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,17 +17,15 @@ public class Country {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "country_id") // Khớp với SQL
+    @Column(name = "country_id")
     private Long id;
 
-    @Column(name = "country_name", nullable = false, unique = true) // Khớp với SQL
+    @Column(name = "country_name", nullable = false, unique = true)
     private String countryName;
 
-    // Sửa region -> continent cho khớp SQL
     @Column(name = "continent")
     private String continent;
 
-    // Thêm cột này vì trong SQL mới có
     @Column(name = "flag_image_url")
     private String flagImageUrl;
 
@@ -34,5 +33,6 @@ public class Country {
     private String description;
 
     @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Uniform> uniforms;
 }

@@ -1,5 +1,6 @@
 package com.A509.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,5 +26,6 @@ public class Image {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uniform_id", nullable = false)
+    @JsonBackReference
     private Uniform uniform;
 }

@@ -3,6 +3,7 @@ package com.A509.Security;
 import com.A509.Entity.User;
 import com.A509.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,18 +19,13 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 1. Tìm user trong DB
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // 2. Trả về User chuẩn của Spring Security
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.emptyList() // Tạm thời chưa phân quyền
-
-                // Khi nào có Role thì mở dòng dưới ra và import SimpleGrantedAuthority:
-                // Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName()))
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName()))
         );
     }
 }

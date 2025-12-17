@@ -1,6 +1,6 @@
 package com.A509.Controller;
 
-import com.A509.Entity.Comment;
+import com.A509.DTO.CommentDTO;
 import com.A509.Service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,29 +15,41 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    // GET: Lấy bình luận theo Uniform
     @GetMapping("/uniform/{uniformId}")
-    public List<Comment> getComments(@PathVariable Long uniformId) {
-        return commentService.getCommentsByUniformId(uniformId);
+    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long uniformId) {
+        return ResponseEntity.ok(commentService.getCommentsByUniformId(uniformId));
     }
 
-    // POST: Viết bình luận (JSON cần { "user": {"id": 1}, "uniform": {"id": 1}, "content": "..." })
     @PostMapping
-    public ResponseEntity<?> addComment(@RequestBody Comment comment) {
+    public ResponseEntity<?> addComment(@RequestBody CommentDTO dto) {
         try {
-            return ResponseEntity.ok(commentService.addComment(comment));
+            return ResponseEntity.ok(commentService.addComment(dto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // DELETE: Xóa bình luận
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentDTO dto) {
+        try {
+            return ResponseEntity.ok(commentService.updateComment(id, dto.getContent()));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("quyền")) {
+                return ResponseEntity.status(403).body(e.getMessage());
+            }
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable Long id) {
         try {
             commentService.deleteComment(id);
-            return ResponseEntity.ok("Đã xóa bình luận");
+            return ResponseEntity.ok("Đã xóa bình luận thành công!");
         } catch (RuntimeException e) {
+            if (e.getMessage().contains("quyền")) {
+                return ResponseEntity.status(403).body(e.getMessage());
+            }
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

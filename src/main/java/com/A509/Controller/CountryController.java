@@ -15,13 +15,11 @@ public class CountryController {
     @Autowired
     private CountryService countryService;
 
-    // GET: Lấy danh sách tất cả quốc gia (Ai cũng xem được)
     @GetMapping
     public List<Country> getAllCountries() {
         return countryService.getAllCountries();
     }
 
-    // GET: Lấy chi tiết 1 quốc gia
     @GetMapping("/{id}")
     public ResponseEntity<?> getCountryById(@PathVariable Long id) {
         return countryService.getCountryById(id)
@@ -29,7 +27,6 @@ public class CountryController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST: Thêm quốc gia (Cần Login)
     @PostMapping
     public ResponseEntity<?> addCountry(@RequestBody Country country) {
         try {
@@ -39,7 +36,6 @@ public class CountryController {
         }
     }
 
-    // PUT: Sửa quốc gia
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCountry(@PathVariable Long id, @RequestBody Country country) {
         try {
@@ -49,7 +45,6 @@ public class CountryController {
         }
     }
 
-    // DELETE: Xóa quốc gia
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCountry(@PathVariable Long id) {
         try {

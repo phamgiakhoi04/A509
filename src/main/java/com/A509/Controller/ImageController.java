@@ -15,28 +15,16 @@ public class ImageController {
     @Autowired
     private ImageService imageService;
 
-    // GET: Lấy ảnh theo Uniform ID (Để hiển thị album)
     @GetMapping("/uniform/{uniformId}")
     public List<Image> getByUniform(@PathVariable Long uniformId) {
         return imageService.getImagesByUniformId(uniformId);
     }
 
-    // POST: Thêm ảnh (JSON cần có { "uniform": { "id": 1 }, "imageUrl": "..." })
-    @PostMapping
-    public ResponseEntity<?> addImage(@RequestBody Image image) {
-        try {
-            return ResponseEntity.ok(imageService.addImage(image));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    // DELETE: Xóa ảnh
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteImage(@PathVariable Long id) {
         try {
             imageService.deleteImage(id);
-            return ResponseEntity.ok("Xóa ảnh thành công");
+            return ResponseEntity.ok("Đã xóa ảnh thành công (DB + Cloud)!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
