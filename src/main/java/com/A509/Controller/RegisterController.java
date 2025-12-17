@@ -17,10 +17,7 @@ public class RegisterController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO) {
         try {
-            // Gọi service xử lý, nhận về UserDTO (đã ẩn password)
             UserDTO newUser = registerService.registerNewUser(registerDTO);
-
-            // Trả về JSON thông tin user mới tạo
             return ResponseEntity.ok(newUser);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

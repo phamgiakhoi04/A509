@@ -1,12 +1,16 @@
 package com.A509.Controller;
 
+import com.A509.DTO.UniformDTO;
 import com.A509.Entity.Uniform;
 import com.A509.Service.UniformService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/uniforms")
@@ -15,60 +19,50 @@ public class UniformController {
     @Autowired
     private UniformService uniformService;
 
-    // GET: Lấy tất cả (Public)
     @GetMapping
     public List<Uniform> getAll() {
         return uniformService.getAllUniforms();
     }
 
-    // GET: Tìm kiếm theo tên (Ví dụ: /api/uniforms/search?keyword=mu)
-    @GetMapping("/search")
-    public List<Uniform> search(@RequestParam String keyword) {
-        return uniformService.searchUniforms(keyword);
-    }
-
-    // GET: Lấy theo Quốc gia (Ví dụ: /api/uniforms/country/1)
-    @GetMapping("/country/{countryId}")
-    public List<Uniform> getByCountry(@PathVariable Long countryId) {
-        return uniformService.getUniformsByCountry(countryId);
-    }
-
-    // GET: Chi tiết 1 bộ
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
-        return uniformService.getUniformById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<Uniform> uniform = uniformService.getUniformById(id);
+        if (uniform.isPresent()) {
+            return ResponseEntity.ok(uniform.get());
+        } else {
+            return ResponseEntity.status(404).body("Không tìm thấy quân phục với ID: " + id);
+        }
     }
 
-    // POST: Thêm mới (JSON gửi lên phải có { "country": { "id": 1 } })
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Uniform uniform) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(@ModelAttribute UniformDTO uniformDTO) {
         try {
-            return ResponseEntity.ok(uniformService.addUniform(uniform));
+            Uniform result = uniformService.addUniform(uniformDTO);
+            return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Lỗi khi upload ảnh: " + e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // PUT: Sửa
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Uniform uniform) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UniformDTO uniformDTO) {
         try {
-            return ResponseEntity.ok(uniformService.updateUniform(id, uniform));
+            Uniform updatedUniform = uniformService.updateUniform(id, uniformDTO);
+            return ResponseEntity.ok(updatedUniform);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // DELETE: Xóa
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
             uniformService.deleteUniform(id);
-            return ResponseEntity.ok("Xóa thành công!");
+            return ResponseEntity.ok("Đã xóa thành công quân phục có ID: " + id);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(404).body(e.getMessage());
         }
     }
 }

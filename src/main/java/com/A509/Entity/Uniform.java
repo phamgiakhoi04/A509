@@ -1,5 +1,6 @@
 package com.A509.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference; // <-- IMPORT QUAN TRỌNG
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,8 +47,12 @@ public class Uniform {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "uniform", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ToString.Exclude
     private Set<Image> images;
 
     @OneToMany(mappedBy = "uniform", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ToString.Exclude
     private Set<Comment> comments;
 }

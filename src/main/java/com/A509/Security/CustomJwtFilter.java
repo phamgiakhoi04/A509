@@ -22,28 +22,24 @@ public class CustomJwtFilter extends OncePerRequestFilter {
     private CustomUserDetailService userDetailsService;
 
     @Autowired
-    private JwtUntilHelper jwtUntilHelper; // Inject Helper vào đây
+    private JwtUntilHelper jwtUntilHelper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. Lấy token từ header
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            // Lấy username thật từ token
             username = jwtUntilHelper.getSubject(token);
         }
 
-        // 2. Kiểm tra và set Authentication
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            // Logic check thật sự (Check user khớp + check hạn token)
             if (jwtUntilHelper.verifyToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());

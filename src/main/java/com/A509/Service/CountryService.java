@@ -1,6 +1,6 @@
 package com.A509.Service;
 
-import com.A509.Entity.Country; // Import đúng class Country
+import com.A509.Entity.Country;
 import com.A509.Repository.CountryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,6 @@ public class CountryService {
         Country existingCountry = countryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Quốc gia không tồn tại"));
 
-        // Kiểm tra trùng tên khi đổi tên
         if (!existingCountry.getCountryName().equals(countryDetails.getCountryName())) {
             if (countryRepository.existsByCountryName(countryDetails.getCountryName())) {
                 throw new RuntimeException("Tên quốc gia '" + countryDetails.getCountryName() + "' đã được sử dụng!");
@@ -56,7 +55,6 @@ public class CountryService {
         Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Quốc gia không tồn tại"));
 
-        // Kiểm tra ràng buộc khóa ngoại
         if (country.getUniforms() != null && !country.getUniforms().isEmpty()) {
             throw new RuntimeException("Không thể xóa quốc gia này vì đã có dữ liệu Quân phục liên quan.");
         }

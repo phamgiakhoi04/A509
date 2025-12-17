@@ -9,9 +9,7 @@ import java.util.List;
 @Repository
 public interface CountryRepository extends JpaRepository<Country, Long> {
 
-    // 1. Kiểm tra tồn tại theo tên
     boolean existsByCountryName(String countryName);
 
-    // 2. Tìm kiếm quốc gia theo tên
     List<Country> findByCountryNameContainingIgnoreCase(String name);
 }
