@@ -8,6 +8,8 @@ import com.A509.Repository.CountryRepository;
 import com.A509.Repository.ImageRepository;
 import com.A509.Repository.UniformRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +36,10 @@ public class UniformService {
 
     public List<Uniform> getAllUniforms() {
         return uniformRepository.findAll();
+    }
+
+    public Page<Uniform> getAllUniforms(Pageable pageable) {
+        return uniformRepository.findAll(pageable);
     }
 
     @Transactional
@@ -96,7 +102,6 @@ public class UniformService {
         }
         return uniformRepository.save(existingUniform);
     }
-
 
     @Transactional
     public void deleteUniform(Long id) {

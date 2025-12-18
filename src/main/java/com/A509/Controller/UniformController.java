@@ -4,6 +4,10 @@ import com.A509.DTO.UniformDTO;
 import com.A509.Entity.Uniform;
 import com.A509.Service.UniformService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +24,23 @@ public class UniformController {
     private UniformService uniformService;
 
     @GetMapping
-    public List<Uniform> getAll() {
-        return uniformService.getAllUniforms();
+    public ResponseEntity<Page<Uniform>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    )
+
+    {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Uniform> uniformPage = uniformService.getAllUniforms(pageable);
+
+        return ResponseEntity.ok(uniformPage);
     }
 
     @GetMapping("/{id}")
