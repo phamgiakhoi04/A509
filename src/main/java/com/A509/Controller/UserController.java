@@ -27,9 +27,10 @@ public class UserController {
         return ResponseEntity.ok(userService.getMyProfile(getCurrentUsername()));
     }
 
-    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProfile(@ModelAttribute ProfileDTO dto) {
         try {
+            // Logic giữ nguyên
             UserDTO updatedUser = userService.updateProfile(getCurrentUsername(), dto);
             return ResponseEntity.ok(updatedUser);
         } catch (IOException e) {
