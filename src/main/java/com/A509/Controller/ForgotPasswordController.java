@@ -15,8 +15,13 @@ public class ForgotPasswordController {
     private ForgotPasswordService forgotPasswordService;
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
         try {
+            String email = body.get("email").trim();
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body("Vui lòng nhập email!");
+            }
+
             String response = forgotPasswordService.forgotPassword(email);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -29,6 +34,10 @@ public class ForgotPasswordController {
         try {
             String token = body.get("token");
             String newPassword = body.get("newPassword");
+
+            if (token == null || newPassword == null) {
+                return ResponseEntity.badRequest().body("Thiếu thông tin token hoặc mật khẩu mới!");
+            }
 
             forgotPasswordService.resetPassword(token, newPassword);
             return ResponseEntity.ok("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
