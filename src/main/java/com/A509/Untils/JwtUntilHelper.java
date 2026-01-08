@@ -21,7 +21,6 @@ public class JwtUntilHelper {
     @Value("${jwt.secret}")
     private String secret;
 
-    // 1. TẠO TOKEN
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         return Jwts.builder()
@@ -33,12 +32,10 @@ public class JwtUntilHelper {
                 .compact();
     }
 
-    // 2. LẤY USERNAME TỪ TOKEN
     public String getSubject(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // 3. VALIDATE TOKEN
     public boolean verifyToken(String token, UserDetails userDetails) {
         try {
             final String username = getSubject(token);
@@ -50,7 +47,6 @@ public class JwtUntilHelper {
     }
 
     private SecretKey getKey() {
-        // Sử dụng biến 'secret' đã được inject
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
