@@ -86,7 +86,7 @@ public class UniformService {
     }
 
     @Transactional
-    public Uniform updateUniform(Long id, UniformDTO dto) {
+    public Uniform updateUniform(Long id, UniformDTO dto) throws IOException {
         Uniform existingUniform = uniformRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy quân phục ID: " + id));
 
@@ -100,6 +100,21 @@ public class UniformService {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Quốc gia ID: " + dto.getCountryId()));
             existingUniform.setCountry(country);
         }
+
+        if (dto.getImageFiles() != null && !dto.getImageFiles().isEmpty()) {
+            for (MultipartFile file : dto.getImageFiles()) {
+                if (!file.isEmpty()) {
+                    String imageUrl = imageService.uploadImage(file);
+                    Image image = new Image();
+                    image.setUniform(existingUniform);
+                    image.setImageUrl(imageUrl);
+                    image.setDescription("Ảnh chi tiết của " + existingUniform.getName());
+
+                    imageRepository.save(image);
+                }
+            }
+        }
+
         return uniformRepository.save(existingUniform);
     }
 
