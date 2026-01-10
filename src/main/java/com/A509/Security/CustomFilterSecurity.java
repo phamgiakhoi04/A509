@@ -50,6 +50,7 @@ public class CustomFilterSecurity {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/uniforms").hasAnyAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")

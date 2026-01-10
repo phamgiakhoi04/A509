@@ -55,7 +55,6 @@ public class UniformController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> create(@ModelAttribute UniformDTO uniformDTO) {
-        System.out.println("Post");
         try {
             Uniform result = uniformService.addUniform(uniformDTO);
             return ResponseEntity.ok(result);
