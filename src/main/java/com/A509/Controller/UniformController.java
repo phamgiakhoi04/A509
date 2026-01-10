@@ -65,11 +65,13 @@ public class UniformController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UniformDTO uniformDTO) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> update(@PathVariable Long id, @ModelAttribute UniformDTO uniformDTO) {
         try {
             Uniform updatedUniform = uniformService.updateUniform(id, uniformDTO);
             return ResponseEntity.ok(updatedUniform);
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Lỗi khi upload ảnh: " + e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
