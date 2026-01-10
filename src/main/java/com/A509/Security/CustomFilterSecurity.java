@@ -48,12 +48,29 @@ public class CustomFilterSecurity {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Auth endpoints - public
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // OPTIONS requests - public
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/uniforms").hasAnyAuthority("ADMIN")
+
+                        // GET endpoints - PUBLIC (ai cũng xem được)
+                        .requestMatchers(HttpMethod.GET, "/api/uniforms/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+
+                        // POST/PUT/DELETE - ADMIN only
                         .requestMatchers(HttpMethod.POST, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/uniforms/**", "/api/images/**", "/api/countries/**").hasAnyAuthority("ADMIN")
+
+                        // Comments endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
+
+                        // Tất cả request còn lại - cần đăng nhập
                         .anyRequest().authenticated()
                 );
 

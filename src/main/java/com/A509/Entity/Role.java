@@ -1,5 +1,6 @@
 package com.A509.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +24,6 @@ public class Role {
     private String name;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<User> users;
 }

@@ -1,6 +1,6 @@
 package com.A509.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference; // <-- IMPORT QUAN TRỌNG
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

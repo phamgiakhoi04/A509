@@ -77,6 +77,7 @@ public class UniformService {
         return savedUniform;
     }
 
+    // Sửa ở đây: dùng findById đã có @EntityGraph
     public Optional<Uniform> getUniformById(Long id) {
         return uniformRepository.findById(id);
     }
