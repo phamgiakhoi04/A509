@@ -29,7 +29,7 @@ public class CommentService {
 
     public List<CommentDTO> getCommentsByUniformId(Long uniformId) {
         if (!uniformRepository.existsById(uniformId)) {
-            throw new RuntimeException("Bộ quân phục không tồn tại!");
+            throw new RuntimeException("Quân trang không tồn tại!");
         }
 
         List<Comment> comments = commentRepository.findByUniform_IdOrderByCreatedAtDesc(uniformId);
@@ -42,40 +42,38 @@ public class CommentService {
             throw new RuntimeException("Nội dung bình luận không được để trống!");
         }
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
-
+        User user = getCurrentUser();
         Uniform uniform = uniformRepository.findById(dto.getUniformId())
-                .orElseThrow(() -> new RuntimeException("Bộ quân phục không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Quân trang không tồn tại!"));
 
-        Comment comment = new Comment();
-        comment.setContent(dto.getContent());
-        comment.setUser(user);
-        comment.setUniform(uniform);
+        Comment comment = Comment.builder()
+                .content(dto.getContent().trim())
+                .user(user)
+                .uniform(uniform)
+                .build();
 
-        Comment savedComment = commentRepository.save(comment);
-        return convertToDTO(savedComment);
+        Comment saved = commentRepository.save(comment);
+        return convertToDTO(saved);
     }
 
     @Transactional
     public CommentDTO updateComment(Long id, String newContent) {
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bình luận không tồn tại"));
-
         if (newContent == null || newContent.trim().isEmpty()) {
             throw new RuntimeException("Nội dung không được để trống!");
         }
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!comment.getUser().getUsername().equals(currentUsername)) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bình luận không tồn tại"));
+
+        User currentUser = getCurrentUser();
+
+        if (!comment.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Bạn chỉ có thể sửa bình luận của chính mình!");
         }
 
-        comment.setContent(newContent);
-
-        Comment updatedComment = commentRepository.save(comment);
-        return convertToDTO(updatedComment);
+        comment.setContent(newContent.trim());
+        Comment updated = commentRepository.save(comment);
+        return convertToDTO(updated);
     }
 
     @Transactional
@@ -83,24 +81,35 @@ public class CommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bình luận không tồn tại"));
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = getCurrentUser();
+        boolean isAdmin = isCurrentUserAdmin();
 
-        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin && !comment.getUser().getUsername().equals(currentUsername)) {
+        if (!isAdmin && !comment.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Bạn không có quyền xóa bình luận này!");
         }
 
         commentRepository.delete(comment);
     }
 
+    private User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+    }
+
+    private boolean isCurrentUserAdmin() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     private CommentDTO convertToDTO(Comment comment) {
         CommentDTO dto = new CommentDTO();
         dto.setId(comment.getId());
         dto.setContent(comment.getContent());
-        dto.setUsername(comment.getUser().getUsername());
         dto.setUniformId(comment.getUniform().getId());
+        dto.setUserId(comment.getUser().getId());
+        dto.setUsername(comment.getUser().getUsername());
+        dto.setUserAvatarUrl(comment.getUser().getAvatarUrl());
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
         return dto;

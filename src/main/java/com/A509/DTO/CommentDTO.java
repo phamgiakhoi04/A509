@@ -8,7 +8,9 @@ public class CommentDTO {
     private Long id;
     private String content;
     private Long uniformId;
+    private Long userId;
     private String username;
+    private String userAvatarUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
