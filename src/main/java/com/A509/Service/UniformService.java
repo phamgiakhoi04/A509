@@ -4,9 +4,11 @@ import com.A509.DTO.UniformDTO;
 import com.A509.Entity.Country;
 import com.A509.Entity.Image;
 import com.A509.Entity.Uniform;
+import com.A509.Entity.UniformCategory;
 import com.A509.Repository.CountryRepository;
 import com.A509.Repository.ImageRepository;
 import com.A509.Repository.UniformRepository;
+import com.A509.Repository.UniformCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,9 @@ public class UniformService {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private UniformCategoryRepository categoryRepository;
+
     public List<Uniform> getAllUniforms() {
         return uniformRepository.findAll();
     }
@@ -51,12 +56,16 @@ public class UniformService {
         Country country = countryRepository.findById(dto.getCountryId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Quốc gia với ID: " + dto.getCountryId()));
 
+        UniformCategory category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại quân phục với ID: " + dto.getCategoryId()));
+
         Uniform uniform = new Uniform();
         uniform.setName(dto.getName());
         uniform.setDescription(dto.getDescription());
         uniform.setHistory(dto.getHistory());
         uniform.setMaterial(dto.getMaterial());
         uniform.setCountry(country);
+        uniform.setCategory(category);
 
         Uniform savedUniform = uniformRepository.save(uniform);
 
@@ -102,6 +111,12 @@ public class UniformService {
             existingUniform.setCountry(country);
         }
 
+        if (dto.getCategoryId() != null) {
+            UniformCategory category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy loại quân phục ID: " + dto.getCategoryId()));
+            existingUniform.setCategory(category);
+        }
+
         if (dto.getImageFiles() != null && !dto.getImageFiles().isEmpty()) {
             for (MultipartFile file : dto.getImageFiles()) {
                 if (!file.isEmpty()) {
@@ -131,5 +146,9 @@ public class UniformService {
             }
         }
         uniformRepository.delete(uniform);
+    }
+
+    public Page<Uniform> getUniformsByCategory(Long categoryId, Pageable pageable) {
+        return uniformRepository.findByCategoryId(categoryId, pageable);
     }
 }

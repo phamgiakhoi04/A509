@@ -86,4 +86,19 @@ public class UniformController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<?> getByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Uniform> uniforms = uniformService.getUniformsByCategory(categoryId, pageable);
+            return ResponseEntity.ok(uniforms);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
