@@ -38,6 +38,10 @@ public class Uniform {
     @JoinColumn(name = "country_id", nullable = false)
     private Country country;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", nullable = true)
+    private UniformCategory category;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -11,5 +11,6 @@ public class UniformDTO {
     private String history;
     private String material;
     private Long countryId;
+    private Long categoryId;
     private List<MultipartFile> imageFiles;
 }
