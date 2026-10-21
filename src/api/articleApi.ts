@@ -2,8 +2,12 @@ import axiosClient from "./axiosClient";
 import type { ArticleDTO } from "@/types/models";
 
 export const articleApi = {
-  getImages: async (articleId: number): Promise<{ id: number; imageUrl: string; description?: string }[]> => {
+  getImages: async (articleId: number): Promise<{ id: number; imageUrl: string; description?: string; referenceUniformId?: number | null; referenceUniformName?: string }[]> => {
     const { data } = await axiosClient.get(`/api/articles/${articleId}/images`);
+    return data;
+  },
+  getReferenceImages: async (uniformId: number): Promise<{ id: number; imageUrl: string; description?: string; referenceUniformId?: number | null; referenceUniformName?: string }[]> => {
+    const { data } = await axiosClient.get(`/api/articles/images/references`, { params: { uniformId } });
     return data;
   },
   uploadImage: async (articleId: number, file: File) => {
@@ -15,8 +19,9 @@ export const articleApi = {
   deleteImage: async (imageId: number) => {
     await axiosClient.delete(`/api/articles/images/${imageId}`);
   },
-  updateImageDescription: async (imageId: number, description: string) => {
-    const { data } = await axiosClient.patch(`/api/articles/images/${imageId}`, { description });
+  updateImageDescription: async (imageId: number, patch: { description?: string; referenceUniformId?: number | null } | string) => {
+    const payload = typeof patch === "string" ? { description: patch } : patch;
+    const { data } = await axiosClient.patch(`/api/articles/images/${imageId}`, payload);
     return data;
   },
   getCategories: async (): Promise<{ id: number; name: string; slug: string }[]> => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
+import { articleApi } from "@/api/articleApi";
 import { Loader2, Calendar, MapPin } from "lucide-react";
 import CommentSection from "@/components/CommentSection";
 import SensitiveImage from "@/components/SensitiveImage";
@@ -10,6 +11,7 @@ export default function UniformDetailPage() {
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [referenceImages, setReferenceImages] = useState<{ id: number; imageUrl: string; description?: string }[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -21,9 +23,13 @@ export default function UniformDetailPage() {
     if (!id) return;
     try {
       setLoading(true);
-      const data = await adminApi.getUniformById(Number(id));
+      const [data, references] = await Promise.all([
+        adminApi.getUniformById(Number(id)),
+        articleApi.getReferenceImages(Number(id)).catch(() => []),
+      ]);
       if (data && data.id) {
         setItem(data);
+        setReferenceImages(references);
       }
     } catch (error) {
       console.error("Lỗi khi tải chi tiết quân trang:", error);
@@ -162,6 +168,21 @@ export default function UniformDetailPage() {
         </div>
 
         <div className="mt-16">
+          {referenceImages.length > 0 && (
+            <section className="mb-16 rounded-3xl border-4 border-brand-yellow/20 bg-white p-8 shadow-pop">
+              <h2 className="mb-6 border-b-4 border-brand-yellow/30 pb-4 font-display text-2xl font-black text-brand-redDark md:text-3xl">
+                REFERENCE
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {referenceImages.map((image) => (
+                  <figure key={image.id} className="overflow-hidden rounded-2xl border border-brand-bg bg-brand-bg/30">
+                    <img src={image.imageUrl} alt={image.description || item.name} className="aspect-[4/3] w-full object-cover" />
+                    {image.description && <figcaption className="p-3 text-sm leading-relaxed text-brand-text/80">{image.description}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </section>
+          )}
           {item?.id && <CommentSection uniformId={item.id} />}
         </div>
       </section>

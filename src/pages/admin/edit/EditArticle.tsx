@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { articleApi } from "@/api/articleApi";
+import { adminApi } from "@/api/adminApi";
 import type { ArticleDTO } from "@/types/models";
 
 const slugify = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-type ImageItem = { id: number; imageUrl: string; description?: string };
+type ImageItem = { id: number; imageUrl: string; description?: string; referenceUniformId?: number | null; referenceUniformName?: string };
 
 const getErrorMessage = (error: any, fallback: string) => {
   if (error?.response?.status === 403) {
@@ -21,18 +22,22 @@ export default function EditArticle() {
   const [article, setArticle] = useState<ArticleDTO | null>(null);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [images, setImages] = useState<ImageItem[]>([]);
+  const [uniforms, setUniforms] = useState<{ id: number; name: string }[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.allSettled([articleApi.getAllForAdmin(), articleApi.getCategories()])
-      .then(async ([articlesResult, categoriesResult]) => {
+    Promise.allSettled([articleApi.getAllForAdmin(), articleApi.getCategories(), adminApi.getAllUniforms()])
+      .then(async ([articlesResult, categoriesResult, uniformsResult]) => {
         if (categoriesResult.status === "fulfilled") {
           setCategories(categoriesResult.value);
         }
         if (articlesResult.status === "rejected") {
           throw articlesResult.reason;
+        }
+        if (uniformsResult.status === "fulfilled") {
+          setUniforms((uniformsResult.value || []).map((uniform: any) => ({ id: Number(uniform.id), name: String(uniform.name || "").trim() })).filter((uniform: { id: number; name: string }) => uniform.id && uniform.name));
         }
         const all = articlesResult.value;
         const categoryData = categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
@@ -69,7 +74,7 @@ export default function EditArticle() {
     catch { setError("Không thể xóa ảnh."); }
   };
   const updateImageDescription = async (image: ImageItem) => {
-    try { const saved = await articleApi.updateImageDescription(image.id, image.description || ""); setImages((current) => current.map((item) => item.id === image.id ? saved : item)); }
+    try { const saved = await articleApi.updateImageDescription(image.id, { description: image.description || "", referenceUniformId: image.referenceUniformId || null }); setImages((current) => current.map((item) => item.id === image.id ? saved : item)); }
     catch { setError("Không thể lưu chú thích ảnh."); }
   };
 
@@ -87,7 +92,7 @@ export default function EditArticle() {
         <textarea required className="input-style w-full" rows={15} value={article.content || ""} onChange={(e) => update({ content: e.target.value })} placeholder="Nội dung bài viết" />
       </section>
       <section><h2 className="mb-3 border-b border-[#ddd] pb-2 text-lg font-bold text-brand-redDark">Danh mục</h2><div className="flex flex-wrap gap-2">{categories.length ? categories.map((category) => <button type="button" key={category.id} onClick={() => toggleCategory(category.id)} className={`rounded-full border px-3 py-1 text-sm transition-colors ${article.categoryIds?.includes(category.id) ? "border-brand-red bg-brand-red text-white" : "border-gray-300 text-brand-text hover:border-brand-red hover:text-brand-red"}`}>{category.name}</button>) : <p className="text-sm text-gray-500">Chưa tải được danh mục. Hãy kiểm tra kết nối backend.</p>}</div></section>
-      <section><h2 className="mb-3 border-b border-[#ddd] pb-2 text-lg font-bold text-brand-redDark">Ảnh và chú thích</h2><div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">{images.map((image) => <div key={image.id} className="border border-[#ddd] p-2"><div className="group relative"><img src={image.imageUrl} alt="Ảnh bài viết" className="aspect-[4/3] w-full object-cover" /><button type="button" onClick={() => removeImage(image.id)} className="absolute right-1 top-1 hidden bg-red-600 px-2 py-1 text-xs text-white group-hover:block">Xóa</button></div><input value={image.description || ""} onChange={(e) => setImages((current) => current.map((item) => item.id === image.id ? { ...item, description: e.target.value } : item))} placeholder="Chú thích ảnh" className="mt-2 w-full border border-[#bbb] p-2 text-sm" /><button type="button" onClick={() => updateImageDescription(image)} className="mt-2 text-sm font-bold text-brand-red hover:underline">Lưu chú thích</button></div>)}</div><input type="file" accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} className="block w-full border border-dashed border-gray-300 p-3 text-sm" />{files.length > 0 && <p className="mt-2 text-sm text-gray-500">Đã chọn {files.length} ảnh mới.</p>}</section>
+      <section><h2 className="mb-3 border-b border-[#ddd] pb-2 text-lg font-bold text-brand-redDark">Ảnh, chú thích và hiện vật tham chiếu</h2><p className="mb-3 text-sm text-gray-600">Chọn hiện vật để ảnh này tự xuất hiện trong mục Reference của trang hiện vật.</p><div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">{images.map((image) => <div key={image.id} className="border border-[#ddd] p-2"><div className="group relative"><img src={image.imageUrl} alt="Ảnh bài viết" className="aspect-[4/3] w-full object-cover" /><button type="button" onClick={() => removeImage(image.id)} className="absolute right-1 top-1 hidden bg-red-600 px-2 py-1 text-xs text-white group-hover:block">Xóa</button></div><input value={image.description || ""} onChange={(e) => setImages((current) => current.map((item) => item.id === image.id ? { ...item, description: e.target.value } : item))} placeholder="Chú thích ảnh" className="mt-2 w-full border border-[#bbb] p-2 text-sm" /><select value={image.referenceUniformId ?? ""} onChange={(e) => setImages((current) => current.map((item) => item.id === image.id ? { ...item, referenceUniformId: e.target.value ? Number(e.target.value) : null } : item))} className="mt-2 w-full border border-[#bbb] bg-white p-2 text-sm"><option value="">Không gắn hiện vật</option>{uniforms.map((uniform) => <option key={uniform.id} value={uniform.id}>{uniform.name}</option>)}</select><button type="button" onClick={() => updateImageDescription(image)} className="mt-2 text-sm font-bold text-brand-red hover:underline">Lưu chú thích & Reference</button></div>)}</div><input type="file" accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} className="block w-full border border-dashed border-gray-300 p-3 text-sm" />{files.length > 0 && <p className="mt-2 text-sm text-gray-500">Đã chọn {files.length} ảnh mới.</p>}</section>
       <div className="flex justify-end gap-3 border-t pt-5"><button type="button" onClick={() => navigate("/admin/tin-tuc")} className="rounded-xl px-5 py-3 font-bold hover:bg-gray-100">Hủy</button><button disabled={saving} className="rounded-xl bg-brand-red px-6 py-3 font-bold text-white hover:bg-brand-redDark disabled:opacity-50">{saving ? "Đang lưu..." : "Lưu thay đổi"}</button></div>
     </form>
   </div>;
