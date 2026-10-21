@@ -85,7 +85,7 @@ export default function TrangChu() {
   const getArticleImage = (article: Article) => {
     return (
       article.thumbnailUrl ||
-      `${import.meta.env.BASE_URL}images/A509 Header.JPG`
+      `${import.meta.env.BASE_URL}images/A509 Header.jpg`
     );
   };
 

@@ -219,7 +219,7 @@ export default function Header() {
       <div className="relative aspect-[5.3/1] w-full overflow-hidden bg-[#333]">
         {/* Ảnh nền */}
         <img
-          src={`${import.meta.env.BASE_URL}images/A509 Header.JPG`}
+          src={`${import.meta.env.BASE_URL}images/A509 Header.jpg`}
           alt="A509 Research & Reenactment Group"
           className="
             absolute
@@ -246,7 +246,7 @@ export default function Header() {
           "
         >
           <img
-            src={`${import.meta.env.BASE_URL}images/A509 Header.JPG`}
+            src={`${import.meta.env.BASE_URL}images/A509 Header.jpg`}
             alt="A509 Research & Reenactment Group"
             className="
               h-auto
