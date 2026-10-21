@@ -322,7 +322,8 @@ export default function EditUniform({
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-lg font-bold text-brand-text mb-4">Ảnh hiện tại</label>
+            <label className="block text-lg font-bold text-brand-text mb-1">Ảnh hiện tại</label>
+            <p className="mb-4 text-sm text-brand-text/65">Trang showcase tự dàn 1 ảnh thành một khung rộng; từ 2–3 ảnh sẽ chia thành các cột đều nhau.</p>
             {existingImages.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {existingImages.map((image, idx) => (
