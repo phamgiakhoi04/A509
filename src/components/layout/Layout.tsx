@@ -20,11 +20,17 @@ export default function Layout() {
       setAuthInitialView("FORGOT");
       setShowAuthModal(true);
     };
+    const openLoginModal = () => {
+      setAuthInitialView("LOGIN");
+      setShowAuthModal(true);
+    };
     window.addEventListener("openRegisterModal", openRegisterModal);
     window.addEventListener("openForgotPasswordModal", openForgotPasswordModal);
+    window.addEventListener("openLoginModal", openLoginModal);
     return () => {
       window.removeEventListener("openRegisterModal", openRegisterModal);
       window.removeEventListener("openForgotPasswordModal", openForgotPasswordModal);
+      window.removeEventListener("openLoginModal", openLoginModal);
     };
   }, []);
 

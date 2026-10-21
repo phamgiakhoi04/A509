@@ -1,8 +1,9 @@
 import RegisterForm from "./Register";
 import ForgotPasswordForm from "./ForgotPassword";
 import ResetPasswordForm from "./ResetPasswordForm";
+import LoginForm from "./LoginForm";
 
-export type AuthView = "REGISTER" | "FORGOT" | "RESET";
+export type AuthView = "LOGIN" | "REGISTER" | "FORGOT" | "RESET";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -36,6 +37,8 @@ export default function AuthModal({ onClose, initialView = "REGISTER", resetToke
           {view === "REGISTER" && (
             <RegisterForm onSwitchLogin={onClose} onRegistered={onClose} />
           )}
+
+          {view === "LOGIN" && <LoginForm onLoggedIn={onClose} />}
 
           {view === "FORGOT" && (
             <ForgotPasswordForm onSwitchLogin={onClose} onBackHome={onClose} />

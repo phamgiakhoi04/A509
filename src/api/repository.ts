@@ -19,6 +19,7 @@ const mapUniformToEquipment = (uniform: any): EquipmentItem => ({
   images: uniform.images?.map((img: any) => ({
     id: img.id,
     imageUrl: img.imageUrl,
+    sensitive: Boolean(img.sensitive),
     caption: img.description || "",
   })) || [],
   country: uniform.country

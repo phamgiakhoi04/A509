@@ -43,7 +43,8 @@ export type EquipmentItem = {
   country: Country | null;
   images: {
     id: number;
-    imageUrl: string;
+    imageUrl?: string;
+    sensitive?: boolean;
     caption?: string;
     description?: string;
   }[];
@@ -63,7 +64,8 @@ export type Uniform = {
   };
   images?: {
     id: number;
-    imageUrl: string;
+    imageUrl?: string;
+    sensitive?: boolean;
     description?: string;
   }[];
   createdAt?: string;

@@ -33,11 +33,12 @@ export default function EditUniform({
     period: "",
   });
 
-  const [existingImages, setExistingImages] = useState<{ id: number; imageUrl: string; description?: string }[]>([]);
+  const [existingImages, setExistingImages] = useState<{ id: number; imageUrl: string; description?: string; sensitive?: boolean }[]>([]);
   const [savingImageId, setSavingImageId] = useState<number | null>(null);
   const [newSelectedImages, setNewSelectedImages] = useState<File[]>([]);
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
   const [newImageDescriptions, setNewImageDescriptions] = useState<string[]>([]);
+  const [newImageSensitive, setNewImageSensitive] = useState<boolean[]>([]);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -74,7 +75,7 @@ export default function EditUniform({
           period: uniformData.period || "",
         });
 
-        setExistingImages(uniformData.images?.map((img: any) => ({ id: img.id, imageUrl: img.imageUrl, description: img.description || "" })) || []);
+        setExistingImages(uniformData.images?.map((img: any) => ({ id: img.id, imageUrl: img.imageUrl, description: img.description || "", sensitive: Boolean(img.sensitive) })) || []);
       } catch (error: any) {
         console.error("Lỗi tải dữ liệu:", error);
         alert(error.response?.data?.message || "Không thể tải thông tin quân trang");
@@ -122,6 +123,7 @@ export default function EditUniform({
       ...files.map((f) => URL.createObjectURL(f)),
     ]);
     setNewImageDescriptions((prev) => [...prev, ...files.map(() => "")]);
+    setNewImageSensitive((prev) => [...prev, ...files.map(() => false)]);
   };
 
   const removeNewPreview = (index: number) => {
@@ -131,6 +133,7 @@ export default function EditUniform({
       return prev.filter((_, i) => i !== index);
     });
     setNewImageDescriptions((prev) => prev.filter((_, i) => i !== index));
+    setNewImageSensitive((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = async (image: { id: number; imageUrl: string; description?: string }) => {
@@ -143,12 +146,12 @@ export default function EditUniform({
     }
   };
 
-  const saveExistingDescription = async (image: { id: number; description?: string }) => {
+  const saveExistingDescription = async (image: { id: number; description?: string; sensitive?: boolean }) => {
     setSavingImageId(image.id);
     try {
-      const updated = await adminApi.updateImageDescription(image.id, image.description || "");
+      const updated = await adminApi.updateImageDescription(image.id, { description: image.description || "", sensitive: Boolean(image.sensitive) });
       setExistingImages((current) => current.map((item) => item.id === image.id
-        ? { ...item, description: updated.description || "" }
+        ? { ...item, description: updated.description || "", sensitive: Boolean(updated.sensitive) }
         : item));
     } catch (error: any) {
       alert(error.response?.data || "Không thể lưu chú thích ảnh.");
@@ -207,6 +210,9 @@ export default function EditUniform({
       });
       newImageDescriptions.forEach((description) => {
         formDataToSend.append("imageDescriptions", description);
+      });
+      newImageSensitive.forEach((sensitive) => {
+        formDataToSend.append("imageSensitive", String(sensitive));
       });
 
       await adminApi.updateUniform(Number(id), formDataToSend);
@@ -335,6 +341,14 @@ export default function EditUniform({
                         placeholder="Chú thích ảnh (tùy chọn)"
                         className="w-full rounded border border-brand-red/20 px-2 py-1 text-xs outline-none focus:border-brand-red"
                       />
+                      <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-semibold text-brand-redDark">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(image.sensitive)}
+                          onChange={(event) => setExistingImages((current) => current.map((item) => item.id === image.id ? { ...item, sensitive: event.target.checked } : item))}
+                        />
+                        Ảnh nhạy cảm / cần đăng nhập
+                      </label>
                       <button
                         type="button"
                         onClick={() => saveExistingDescription(image)}
@@ -387,6 +401,14 @@ export default function EditUniform({
                         placeholder="Chú thích ảnh (tùy chọn)"
                         className="relative z-20 mt-2 w-full rounded-lg border border-brand-red/20 px-3 py-2 text-sm outline-none focus:border-brand-red"
                       />
+                      <label className="relative z-20 mt-2 flex cursor-pointer items-center gap-2 text-left text-xs font-semibold text-brand-redDark" onClick={(event) => event.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(newImageSensitive[idx])}
+                          onChange={(event) => setNewImageSensitive((prev) => prev.map((value, i) => i === idx ? event.target.checked : value))}
+                        />
+                        Ảnh nhạy cảm / cần đăng nhập
+                      </label>
                     </div>
                   ))}
                 </div>

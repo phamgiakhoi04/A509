@@ -37,6 +37,7 @@ export default function UniformManager({
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
+  const [imageSensitive, setImageSensitive] = useState<boolean[]>([]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -153,6 +154,7 @@ export default function UniformManager({
       ...files.map((f) => URL.createObjectURL(f)),
     ]);
     setImageDescriptions((prev) => [...prev, ...files.map(() => "")]);
+    setImageSensitive((prev) => [...prev, ...files.map(() => false)]);
   };
 
   const removePreview = (index: number) => {
@@ -162,6 +164,7 @@ export default function UniformManager({
       return prev.filter((_, i) => i !== index);
     });
     setImageDescriptions((prev) => prev.filter((_, i) => i !== index));
+    setImageSensitive((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -208,6 +211,9 @@ export default function UniformManager({
       imageDescriptions.forEach((description) => {
         formDataToSend.append("imageDescriptions", description);
       });
+      imageSensitive.forEach((sensitive) => {
+        formDataToSend.append("imageSensitive", String(sensitive));
+      });
 
       await adminApi.createUniform(formDataToSend);
 
@@ -223,6 +229,7 @@ export default function UniformManager({
       setSelectedImages([]);
       setPreviewUrls([]);
       setImageDescriptions([]);
+      setImageSensitive([]);
 
       setToastMessage(`Đã thêm ${itemLabel} thành công!`);
       setShowSuccessToast(true);
@@ -396,6 +403,14 @@ export default function UniformManager({
                               placeholder="Chú thích ảnh (tùy chọn)"
                               className="relative z-20 mt-2 w-full rounded-lg border border-brand-red/20 px-3 py-2 text-sm outline-none focus:border-brand-red"
                             />
+                            <label className="relative z-20 mt-2 flex cursor-pointer items-center gap-2 text-left text-xs font-semibold text-brand-redDark" onClick={(event) => event.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={Boolean(imageSensitive[idx])}
+                                onChange={(event) => setImageSensitive((prev) => prev.map((value, i) => i === idx ? event.target.checked : value))}
+                              />
+                              Ảnh nhạy cảm / cần đăng nhập
+                            </label>
                           </div>
                         ))}
                       </div>

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
 import { Loader2, Calendar, MapPin } from "lucide-react";
 import CommentSection from "@/components/CommentSection";
+import SensitiveImage from "@/components/SensitiveImage";
 
 export default function UniformDetailPage() {
   const { id } = useParams();
@@ -78,10 +79,11 @@ export default function UniformDetailPage() {
               {item.images?.length > 0 ? (
                 <>
                   <div className="aspect-[4/3] rounded-2xl overflow-hidden border-2 border-brand-bg bg-brand-bg/50">
-                    <img
-                      src={item.images[selectedImage]?.imageUrl}
+                    <SensitiveImage
+                      src={item.images[selectedImage]?.imageUrl || undefined}
+                      sensitive={Boolean(item.images[selectedImage]?.sensitive)}
                       alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                   </div>
                   {item.images.length > 1 && (
@@ -96,7 +98,7 @@ export default function UniformDetailPage() {
                               : "border-transparent hover:border-brand-yellow hover:scale-105"
                           }`}
                         >
-                          <img src={img.imageUrl} alt={`${item.name} - ${idx + 1}`} className="w-full h-full object-cover" />
+                          <SensitiveImage src={img.imageUrl || undefined} sensitive={Boolean(img.sensitive)} alt={`${item.name} - ${idx + 1}`} className="h-full w-full object-cover" />
                         </button>
                       ))}
                     </div>
