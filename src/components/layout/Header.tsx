@@ -246,7 +246,7 @@ export default function Header() {
           "
         >
           <img
-            src={`${import.meta.env.BASE_URL}images/A509 Header.jpg`}
+            src={`${import.meta.env.BASE_URL}images/A509 Research & Reenactment Group.png`}
             alt="A509 Research & Reenactment Group"
             className="
               h-auto
