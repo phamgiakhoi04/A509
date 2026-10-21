@@ -22,10 +22,13 @@ import SearchPage from "@/pages/SearchPage";
 import DocumentLandingPage from "@/pages/DocumentPage";
 import UserManager from "@/pages/admin/UserManager";
 import ReenactmentHierarchyPage from "@/pages/ReenactmentHierarchyPage";
+import ImageContextNotice from "@/components/ImageContextNotice";
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ImageContextNotice />
+      <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/gioi-thieu" element={<AboutPage />} />
@@ -105,6 +108,7 @@ export default function App() {
         </Route>
       </Route>
 
-    </Routes>
+      </Routes>
+    </>
   );
 }
