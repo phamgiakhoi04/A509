@@ -47,6 +47,11 @@ export const articleApi = {
     return data;
   },
 
+  getPublished: async (): Promise<ArticleDTO[]> => {
+    const { data } = await axiosClient.get("/api/articles");
+    return data;
+  },
+
   getFeatured: async (): Promise<ArticleDTO[]> => {
     const { data } = await axiosClient.get("/api/articles/featured");
     return data;
