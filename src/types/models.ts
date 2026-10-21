@@ -62,6 +62,17 @@ export type Uniform = {
     id: number;
     countryName: string;
   };
+  category?: {
+    id: number;
+    categoryName: string;
+    categoryType?: string;
+  };
+  period?: string;
+  periodCategory?: {
+    id: number;
+    categoryName: string;
+    slug?: string;
+  };
   images?: {
     id: number;
     imageUrl?: string;
@@ -128,7 +139,12 @@ export type Article = {
   slug: string;
   excerpt?: string;
   content?: string;
+  titleEn?: string;
+  excerptEn?: string;
+  contentEn?: string;
+  englishTranslationAvailable?: boolean;
   thumbnailUrl?: string;
+  thumbnailSensitive?: boolean;
 
   status: "DRAFT" | "PUBLISHED" | string;
 
@@ -177,7 +193,12 @@ export type ArticleDTO = {
   slug: string;
   excerpt: string;
   content: string;
+  titleEn?: string;
+  excerptEn?: string;
+  contentEn?: string;
+  englishTranslationAvailable?: boolean;
   thumbnailUrl?: string;
+  thumbnailSensitive?: boolean;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   featured: boolean;
   featuredOrder: number;

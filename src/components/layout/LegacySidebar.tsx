@@ -6,10 +6,12 @@ import axiosClient from "@/api/axiosClient";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ActivityLog, ArticleDTO } from "@/types/models";
 import Profile from "@/components/auth/Profile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LegacySidebar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, login, logout } = useAuth();
+  const { language } = useLanguage();
   const [query, setQuery] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -53,7 +55,7 @@ export default function LegacySidebar() {
         <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("openForgotPasswordModal"))} className="mt-1 block ml-auto text-[12px] text-[#777] hover:text-[#c62828] hover:underline">Quên mật khẩu?</button>
       </form>}
     </div>
-    <SidebarList title="BÀI VIẾT MỚI" items={latest.map((article) => ({ label: article.title, to: `/tin-tuc/${article.slug}` }))} />
+    <SidebarList title={language === "en" ? "LATEST ARTICLES" : "BÀI VIẾT MỚI"} items={latest.map((article) => ({ label: language === "en" ? article.titleEn || article.title : article.title, to: `/tin-tuc/${article.slug}` }))} />
     <SidebarList title="CẬP NHẬT" items={activities.map((activity) => ({ label: activity.description || activity.action, to: activity.articleSlug ? `/tin-tuc/${activity.articleSlug}` : "#" }))} />
     {showProfile && user && <Profile user={user} onClose={() => setShowProfile(false)} onUpdateSuccess={(updatedUser) => { const token = localStorage.getItem("ACCESS_TOKEN"); if (token) { authApi.saveToken(token, updatedUser); login(token, updatedUser); } }} />}
   </aside>;

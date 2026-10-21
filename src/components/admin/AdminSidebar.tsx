@@ -23,7 +23,7 @@ export default function AdminSidebar() {
       >
           <div className="h-14 w-52 bg-[#1f1f1f] border-b-4 border-brand-yellow overflow-hidden flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
           <img
-            src="/images/A509 Research & Reenactment Group.png"
+            src={`${import.meta.env.BASE_URL}images/A509 Research & Reenactment Group.png`}
             alt="A509 Logo"
             className="w-48 h-14 object-contain"
           />

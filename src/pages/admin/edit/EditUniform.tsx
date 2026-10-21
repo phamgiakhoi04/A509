@@ -30,7 +30,7 @@ export default function EditUniform({
     history: "",
     countryId: 0,
     categoryId: "",
-    period: "",
+    periodCategoryId: "",
   });
 
   const [existingImages, setExistingImages] = useState<{ id: number; imageUrl: string; description?: string; sensitive?: boolean }[]>([]);
@@ -66,13 +66,19 @@ export default function EditUniform({
           : (categoriesData || []);
         setCategories(usableCategories);
 
+        const existingForce = usableCategories.find((category: any) => Number(category.id) === Number(uniformData.category?.id || uniformData.categoryId));
+        const legacyPeriod = (existingForce?.children || []).find((period: any) =>
+          (period.slug || slugifyPeriod(period.categoryName || "")) === uniformData.period
+        );
+        const selectedPeriodId = uniformData.periodCategory?.id || legacyPeriod?.id;
+
         setFormData({
           name: uniformData.name || "",
           description: uniformData.description || "",
           history: uniformData.history || "",
           countryId: uniformData.country?.id || uniformData.countryId || Number(countriesData?.[0]?.id) || 0,
           categoryId: uniformData.category?.id || uniformData.categoryId || "",
-          period: uniformData.period || "",
+          periodCategoryId: selectedPeriodId ? String(selectedPeriodId) : "",
         });
 
         setExistingImages(uniformData.images?.map((img: any) => ({ id: img.id, imageUrl: img.imageUrl, description: img.description || "", sensitive: Boolean(img.sensitive) })) || []);
@@ -180,7 +186,7 @@ export default function EditUniform({
       alert("Lực lượng không thuộc quốc gia đang chọn");
       return;
     }
-    if (categoryType === "REENACTMENT" && !formData.period) {
+    if (categoryType === "REENACTMENT" && (!formData.periodCategoryId || !visiblePeriods.some((period: any) => String(period.id) === formData.periodCategoryId))) {
       alert("Vui lòng chọn giai đoạn lịch sử");
       return;
     }
@@ -203,7 +209,11 @@ export default function EditUniform({
       formDataToSend.append("history", formData.history || "");
       formDataToSend.append("countryId", formData.countryId.toString());
       if (formData.categoryId) formDataToSend.append("categoryId", String(formData.categoryId));
-      if (categoryType === "REENACTMENT") formDataToSend.append("period", formData.period);
+      if (categoryType === "REENACTMENT") {
+        const period = visiblePeriods.find((item: any) => String(item.id) === formData.periodCategoryId);
+        formDataToSend.append("periodCategoryId", formData.periodCategoryId);
+        if (period?.slug) formDataToSend.append("period", period.slug);
+      }
 
       newSelectedImages.forEach((file) => {
         formDataToSend.append("imageFiles", file);
@@ -265,7 +275,7 @@ export default function EditUniform({
             <select
               className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg outline-none transition-all"
               value={formData.categoryId}
-              onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, period: "" })}
+              onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, periodCategoryId: "" })}
               required
             >
               <option value="">{categoryType === "REENACTMENT" ? "Chọn lực lượng" : "Chọn danh mục"}</option>
@@ -275,9 +285,9 @@ export default function EditUniform({
 
           {categoryType === "REENACTMENT" && <div className="md:col-span-2">
             <label className="mb-3 block text-lg font-bold text-brand-text">Giai đoạn lịch sử *</label>
-            <select className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg outline-none transition-all" value={formData.period} onChange={(e) => setFormData({ ...formData, period: e.target.value })} required>
+            <select className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg outline-none transition-all" value={formData.periodCategoryId} onChange={(e) => setFormData({ ...formData, periodCategoryId: e.target.value })} required>
               <option value="">-- Chọn giai đoạn --</option>
-              {visiblePeriods.map((period: any) => { const value = period.slug || slugifyPeriod(period.categoryName); return <option key={period.id} value={value}>{period.categoryName}</option>; })}
+              {visiblePeriods.map((period: any) => <option key={period.id} value={period.id}>{period.categoryName}</option>)}
             </select>
           </div>}
 
@@ -304,7 +314,7 @@ export default function EditUniform({
             <select
               className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg focus:ring-4 focus:ring-brand-yellow focus:border-brand-yellow outline-none transition-all bg-white"
               value={formData.countryId}
-              onChange={(e) => setFormData({ ...formData, countryId: Number(e.target.value), ...(categoryType === "REENACTMENT" ? { categoryId: "", period: "" } : {}) })}
+              onChange={(e) => setFormData({ ...formData, countryId: Number(e.target.value), ...(categoryType === "REENACTMENT" ? { categoryId: "", periodCategoryId: "" } : {}) })}
               required
             >
               <option value="">-- Chọn quốc gia --</option>

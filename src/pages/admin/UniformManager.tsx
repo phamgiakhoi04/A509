@@ -11,8 +11,6 @@ type UniformManagerProps = {
   embedded?: boolean;
   initialCountryId?: number;
 };
-const slugifyPeriod = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
 export default function UniformManager({
   categoryType = "UNIFORM",
   title = "Quản lý Quân trang",
@@ -32,7 +30,7 @@ export default function UniformManager({
     history: "",
     countryId: 0,
     categoryId: "",
-    period: "",
+    periodCategoryId: "",
   });
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -130,11 +128,11 @@ export default function UniformManager({
   }, [formData.countryId, formData.categoryId, categories, isReenactment]);
 
   useEffect(() => {
-    if (!isReenactment || !formData.period) return;
-    if (!visiblePeriods.some((period: any) => (period.slug || slugifyPeriod(period.categoryName)) === formData.period)) {
-      setFormData((prev) => ({ ...prev, period: "" }));
+    if (!isReenactment || !formData.periodCategoryId) return;
+    if (!visiblePeriods.some((period: any) => String(period.id) === formData.periodCategoryId)) {
+      setFormData((prev) => ({ ...prev, periodCategoryId: "" }));
     }
-  }, [formData.categoryId, formData.countryId, formData.period, categories, isReenactment]);
+  }, [formData.categoryId, formData.countryId, formData.periodCategoryId, categories, isReenactment]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -192,7 +190,7 @@ export default function UniformManager({
         setLoading(false);
         return;
       }
-      if (isReenactment && !formData.period) {
+      if (isReenactment && !formData.periodCategoryId) {
         alert("Vui lòng chọn giai đoạn lịch sử");
         setLoading(false);
         return;
@@ -203,7 +201,11 @@ export default function UniformManager({
         return;
       }
       formDataToSend.append("categoryId", formData.categoryId);
-      if (categoryType === "REENACTMENT") formDataToSend.append("period", formData.period);
+      if (categoryType === "REENACTMENT") {
+        const period = visiblePeriods.find((item: any) => String(item.id) === formData.periodCategoryId);
+        formDataToSend.append("periodCategoryId", formData.periodCategoryId);
+        if (period?.slug) formDataToSend.append("period", period.slug);
+      }
 
       selectedImages.forEach((file) => {
         formDataToSend.append("imageFiles", file);
@@ -224,7 +226,7 @@ export default function UniformManager({
         history: "",
         countryId: countries[0]?.id ? Number(countries[0].id) : 0,
         categoryId: isReenactment ? "" : (categories[0]?.id ? String(categories[0].id) : ""),
-        period: "",
+        periodCategoryId: "",
       });
       setSelectedImages([]);
       setPreviewUrls([]);
@@ -333,7 +335,7 @@ export default function UniformManager({
                   <select
                     className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg focus:ring-4 focus:ring-brand-yellow focus:border-brand-yellow outline-none transition-all bg-white"
                     value={formData.countryId}
-                    onChange={(e) => setFormData({ ...formData, countryId: Number(e.target.value), ...(isReenactment ? { categoryId: "" } : {}) })}
+                    onChange={(e) => setFormData({ ...formData, countryId: Number(e.target.value), ...(isReenactment ? { categoryId: "", periodCategoryId: "" } : {}) })}
                     required
                   >
                     <option value="">-- Chọn quốc gia --</option>
@@ -350,7 +352,7 @@ export default function UniformManager({
                   <select
                     className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg focus:ring-4 focus:ring-brand-yellow focus:border-brand-yellow outline-none transition-all bg-white"
                     value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, period: "" })}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, periodCategoryId: "" })}
                     required
                   >
                     <option value="">{isReenactment ? "Chọn lực lượng" : "Chọn loại quân trang"}</option>
@@ -364,9 +366,9 @@ export default function UniformManager({
 
                 {categoryType === "REENACTMENT" && <div className="md:col-span-2">
                   <label className="block text-lg font-bold text-brand-text mb-3">Giai đoạn lịch sử *</label>
-                  <select className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg bg-white" value={formData.period} onChange={(e) => setFormData({ ...formData, period: e.target.value })} required>
+                  <select className="w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg bg-white" value={formData.periodCategoryId} onChange={(e) => setFormData({ ...formData, periodCategoryId: e.target.value })} required>
                     <option value="">-- Chọn giai đoạn --</option>
-                    {visiblePeriods.map((period: any) => { const value = period.slug || slugifyPeriod(period.categoryName); return <option key={period.id} value={value}>{period.categoryName}</option>; })}
+                    {visiblePeriods.map((period: any) => <option key={period.id} value={period.id}>{period.categoryName}</option>)}
                   </select>
                 </div>}
 
@@ -481,7 +483,7 @@ export default function UniformManager({
                 </td>
                 <td className="p-5 text-brand-text/70">{item.country?.countryName || "-"}</td>
                 {isReenactment && <td className="p-5 text-brand-text/70">{item.category?.categoryName || "-"}</td>}
-                {isReenactment && <td className="p-5 text-brand-text/70">{allPeriods.find((period: any) => (period.slug || slugifyPeriod(period.categoryName)) === item.period)?.categoryName || item.period || "-"}</td>}
+                {isReenactment && <td className="p-5 text-brand-text/70">{item.periodCategory?.categoryName || allPeriods.find((period: any) => period.slug === item.period)?.categoryName || item.period || "-"}</td>}
                 <td className="p-5 text-brand-text/70 max-w-[250px]">
                   <div className="line-clamp-3">{item.description || "-"}</div>
                 </td>

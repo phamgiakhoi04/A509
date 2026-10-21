@@ -1,4 +1,7 @@
+import { useLanguage } from "@/contexts/LanguageContext";
+
 export default function Footer() {
+  const { language } = useLanguage();
   return (
     <footer className="mt-8 border-t-4 border-[#a92323] bg-[#292929] text-white">
       {/* NOTE:
@@ -10,7 +13,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-2 text-xs leading-5 text-[#ccc]">
-          Dự án tái hiện lịch sử và tư liệu Việt Nam.
+          {language === "en" ? "Vietnamese historical reenactment and documentation project." : "Dự án tái hiện lịch sử và tư liệu Việt Nam."}
           <br />
           Email: a509vietnam@gmail.com
         </div>
@@ -53,7 +56,7 @@ export default function Footer() {
           Copyright.
       */}
       <div className="border-t border-[#444] px-5 py-3 text-center text-[11px] text-[#aaa]">
-        © {new Date().getFullYear()} A509 - Dự án tái hiện lịch sử Việt Nam
+        © {new Date().getFullYear()} A509 - {language === "en" ? "Vietnamese Historical Reenactment Project" : "Dự án tái hiện lịch sử Việt Nam"}
       </div>
     </footer>
   );

@@ -1,25 +1,43 @@
 import axiosClient from "./axiosClient";
 import type { ArticleDTO } from "@/types/models";
 
+export type ArticleImage = {
+  id: number;
+  imageUrl: string | null;
+  description?: string;
+  sensitive?: boolean;
+  referenceUniformId?: number | null;
+  referenceUniformName?: string;
+};
+
 export const articleApi = {
-  getImages: async (articleId: number): Promise<{ id: number; imageUrl: string; description?: string; referenceUniformId?: number | null; referenceUniformName?: string }[]> => {
+  getImages: async (articleId: number): Promise<ArticleImage[]> => {
     const { data } = await axiosClient.get(`/api/articles/${articleId}/images`);
     return data;
   },
-  getReferenceImages: async (uniformId: number): Promise<{ id: number; imageUrl: string; description?: string; referenceUniformId?: number | null; referenceUniformName?: string }[]> => {
+  getReferenceImages: async (uniformId: number): Promise<ArticleImage[]> => {
     const { data } = await axiosClient.get(`/api/articles/images/references`, { params: { uniformId } });
     return data;
   },
-  uploadImage: async (articleId: number, file: File) => {
+  uploadImage: async (
+    articleId: number,
+    file: File,
+    sensitive = false,
+    description = "",
+    referenceUniformId?: number | null,
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("sensitive", String(sensitive));
+    formData.append("description", description);
+    if (referenceUniformId != null) formData.append("referenceUniformId", String(referenceUniformId));
     const { data } = await axiosClient.post(`/api/articles/${articleId}/images`, formData);
     return data;
   },
   deleteImage: async (imageId: number) => {
     await axiosClient.delete(`/api/articles/images/${imageId}`);
   },
-  updateImageDescription: async (imageId: number, patch: { description?: string; referenceUniformId?: number | null } | string) => {
+  updateImageDescription: async (imageId: number, patch: { description?: string; sensitive?: boolean; referenceUniformId?: number | null } | string) => {
     const payload = typeof patch === "string" ? { description: patch } : patch;
     const { data } = await axiosClient.patch(`/api/articles/images/${imageId}`, payload);
     return data;

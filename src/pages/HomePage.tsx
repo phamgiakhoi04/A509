@@ -4,8 +4,11 @@ import { repo } from "@/api/repository";
 import { authApi } from "@/api/authApi";
 import { useAuth } from "@/contexts/AuthContext";
 import Profile from "@/components/auth/Profile";
+import SensitiveImage from "@/components/SensitiveImage";
 import type { Article, ActivityLog } from "@/types/models";
 import { formatDateTime } from "@/utils/format";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getLocalizedArticleText } from "@/utils/articleTranslation";
 
 export default function TrangChu() {
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
@@ -20,6 +23,7 @@ export default function TrangChu() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const { isAuthenticated, user, login, logout } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const handleSidebarLogin = async (event: FormEvent) => {
     event.preventDefault();
@@ -76,12 +80,12 @@ export default function TrangChu() {
     };
 
     loadHomepage();
-  }, []);
+  }, [isAuthenticated]);
 
   const getArticleImage = (article: Article) => {
     return (
       article.thumbnailUrl ||
-      "/images/A509 Header.JPG"
+      `${import.meta.env.BASE_URL}images/A509 Header.JPG`
     );
   };
 
@@ -97,8 +101,9 @@ export default function TrangChu() {
     }
 
     return featuredArticles.filter((article) =>
-      `${article.title} ${article.excerpt || ""} ${
-        article.content || ""
+      `${article.title} ${article.excerpt || ""} ${article.content || ""} ${
+        article.titleEn || ""
+      } ${article.excerptEn || ""} ${article.contentEn || ""
       }`
         .toLowerCase()
         .includes(query)
@@ -113,8 +118,9 @@ export default function TrangChu() {
     }
 
     return restorationArticles.filter((article) =>
-      `${article.title} ${article.excerpt || ""} ${
-        article.content || ""
+      `${article.title} ${article.excerpt || ""} ${article.content || ""} ${
+        article.titleEn || ""
+      } ${article.excerptEn || ""} ${article.contentEn || ""
       }`
         .toLowerCase()
         .includes(query)
@@ -160,8 +166,9 @@ export default function TrangChu() {
                     className="group block"
                   >
                     <div className="aspect-[16/9] w-[calc(100%_-_0.5cm)] overflow-hidden bg-[#eee]">
-                      <img
+                      <SensitiveImage
                         src={getArticleImage(featuredArticle)}
+                        sensitive={Boolean(featuredArticle.thumbnailSensitive)}
                         alt={featuredArticle.title}
                         className="h-full w-[calc(100%+1cm)] max-w-none -translate-x-[1cm] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                       />
@@ -182,15 +189,16 @@ export default function TrangChu() {
                         className="group block"
                       >
                         <div className="aspect-[4/3] overflow-hidden bg-[#eee]">
-                          <img
+                          <SensitiveImage
                             src={getArticleImage(article)}
-                            alt={article.title}
+                            sensitive={Boolean(article.thumbnailSensitive)}
+                            alt={getLocalizedArticleText(article, language).title}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
 
                         <h3 className="mt-2 font-display text-[14px] font-bold leading-[1.12] text-[#222] group-hover:text-[#9A1B1E]">
-                          {article.title}
+                          {getLocalizedArticleText(article, language).title}
                         </h3>
                       </Link>
                     ))}
@@ -226,9 +234,10 @@ export default function TrangChu() {
                           {/* Ảnh */}
 
                           <div className="aspect-[4/3] overflow-hidden bg-[#eee]">
-                            <img
+                            <SensitiveImage
                               src={getArticleImage(article)}
-                              alt={article.title}
+                              sensitive={Boolean(article.thumbnailSensitive)}
+                              alt={getLocalizedArticleText(article, language).title}
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                           </div>
@@ -237,7 +246,7 @@ export default function TrangChu() {
 
                           <div>
                             <h3 className="font-display text-[16px] font-black uppercase leading-[1.15] text-[#333] group-hover:text-[#9A1B1E]">
-                              {article.title}
+                              {getLocalizedArticleText(article, language).title}
                             </h3>
 
                             <div className="mt-1 font-mono text-[12px] italic text-[#999]">
@@ -248,7 +257,7 @@ export default function TrangChu() {
                             </div>
 
                             <p className="mt-2 line-clamp-3 text-[14px] leading-[1.25] text-[#444]">
-                              {article.excerpt ||
+                              {getLocalizedArticleText(article, language).excerpt ||
                                 "Chưa có mô tả cho bài viết này."}
                             </p>
                           </div>
@@ -438,7 +447,7 @@ export default function TrangChu() {
                         to={getArticleLink(article)}
                         className="hover:text-[#9A1B1E]"
                       >
-                        {article.title}
+                        {getLocalizedArticleText(article, language).title}
                       </Link>
                     </li>
                   ))}

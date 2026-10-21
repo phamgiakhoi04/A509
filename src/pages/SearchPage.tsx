@@ -3,7 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { adminApi } from "@/api/adminApi";
 import { articleApi } from "@/api/articleApi";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getLocalizedArticleText } from "@/utils/articleTranslation";
 import type { ArticleDTO } from "@/types/models";
+import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
 
 type SearchResult = {
   key: string;
@@ -28,6 +31,7 @@ const normalize = (value: unknown) => String(value ?? "")
   .replace(/đ/g, "d");
 
 export default function SearchPage() {
+  const { language } = useLanguage();
   const [params, setParams] = useSearchParams();
   const query = (params.get("q") || "").trim();
   const [input, setInput] = useState(query);
@@ -68,12 +72,13 @@ export default function SearchPage() {
     const matches = (...values: unknown[]) => values.some((value) => normalize(value).includes(needle));
 
     articles.forEach((article) => {
-      if (matches(article.title, article.excerpt, article.content)) {
+      if (matches(article.title, article.excerpt, article.content, article.titleEn, article.excerptEn, article.contentEn)) {
+        const localized = getLocalizedArticleText(article, language);
         found.push({
           key: `article-${article.id ?? article.slug}`,
-          type: "Bài viết",
-          title: article.title,
-          description: article.excerpt || "Bài viết trong thư viện A509.",
+          type: language === "en" ? "Article" : "Bài viết",
+          title: localized.title,
+          description: localized.excerpt || (language === "en" ? "Article in the A509 library." : "Bài viết trong thư viện A509."),
           href: `/tin-tuc/${article.slug}`,
         });
       }
@@ -132,7 +137,7 @@ export default function SearchPage() {
     });
 
     return found;
-  }, [articles, countries, query, reenactmentRoots, uniforms]);
+  }, [articles, countries, language, query, reenactmentRoots, uniforms]);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,39 +147,40 @@ export default function SearchPage() {
   };
 
   return (
-    <section className="mx-auto min-h-[55vh] max-w-5xl bg-white px-5 py-8 md:px-10 md:py-10">
-      <h1 className="font-display text-3xl font-black uppercase text-brand-redDark">Tra cứu</h1>
-      <p className="mt-2 text-sm text-gray-600">Tìm trong bài viết, quân trang, quốc gia, lực lượng và thời kỳ phục dựng.</p>
+    <ContentPageLayout className="min-h-[55vh]">
+      <section className="mx-auto w-full max-w-5xl">
+      <ContentPageTitle>{language === "en" ? "Search" : "Tra cứu"}</ContentPageTitle>
+      <p className="mt-2 text-sm text-gray-600">{language === "en" ? "Search articles, uniforms, countries, forces, and reenactment periods." : "Tìm trong bài viết, quân trang, quốc gia, lực lượng và thời kỳ phục dựng."}</p>
 
       <form onSubmit={submitSearch} className="mt-6 flex border border-gray-300 focus-within:border-brand-red">
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Nhập tên, từ khóa hoặc nội dung..."
-          aria-label="Từ khóa tra cứu"
+          placeholder={language === "en" ? "Enter a name, keyword, or phrase..." : "Nhập tên, từ khóa hoặc nội dung..."}
+          aria-label={language === "en" ? "Search terms" : "Từ khóa tra cứu"}
           className="min-w-0 flex-1 px-4 py-3 outline-none"
         />
         <button type="submit" aria-label="Tìm kiếm" className="flex items-center gap-2 bg-brand-red px-5 font-bold text-white hover:bg-brand-redDark">
           <Search size={18} />
-          Tìm
+          {language === "en" ? "Search" : "Tìm"}
         </button>
       </form>
 
       {!query ? (
-        <p className="py-16 text-center text-gray-500">Nhập từ khóa để tra cứu nội dung trên trang.</p>
+        <p className="py-16 text-center text-gray-500">{language === "en" ? "Enter a keyword to search the site." : "Nhập từ khóa để tra cứu nội dung trên trang."}</p>
       ) : loading ? (
-        <p className="py-16 text-center text-gray-500">Đang tra cứu...</p>
+        <p className="py-16 text-center text-gray-500">{language === "en" ? "Searching..." : "Đang tra cứu..."}</p>
       ) : loadError ? (
-        <p className="py-16 text-center text-red-700">Không tải được dữ liệu tra cứu. Vui lòng tải lại trang.</p>
+        <p className="py-16 text-center text-red-700">{language === "en" ? "Search data could not be loaded. Please reload the page." : "Không tải được dữ liệu tra cứu. Vui lòng tải lại trang."}</p>
       ) : results.length === 0 ? (
-        <p className="py-16 text-center text-gray-500">Không tìm thấy kết quả cho “{query}”.</p>
+        <p className="py-16 text-center text-gray-500">{language === "en" ? `No results found for “${query}”.` : `Không tìm thấy kết quả cho “${query}”.`}</p>
       ) : (
         <>
-          <p className="mt-6 text-sm text-gray-500">Tìm thấy {results.length} kết quả</p>
+          <p className="mt-6 text-sm text-gray-500">{language === "en" ? `${results.length} results found` : `Tìm thấy ${results.length} kết quả`}</p>
           <div className="mt-2 divide-y divide-gray-200 border-y border-gray-200">
             {results.map((result) => (
               <Link key={result.key} to={result.href} className="block py-4 hover:text-brand-red">
-                <span className="text-xs font-bold uppercase tracking-wide text-brand-red">{result.type}</span>
+                <span className="text-xs font-bold uppercase tracking-wide text-brand-red">{language === "en" ? ({ "Bài viết": "Article", "Quân trang": "Uniform", "Phục dựng": "Reenactment", "Quốc gia": "Country", "Lực lượng": "Force", "Thời kỳ": "Period" } as Record<string, string>)[result.type] || result.type : result.type}</span>
                 <h2 className="mt-1 font-display text-xl font-bold">{result.title}</h2>
                 {result.description && <p className="mt-1 line-clamp-2 text-sm text-gray-600">{result.description}</p>}
               </Link>
@@ -182,6 +188,7 @@ export default function SearchPage() {
           </div>
         </>
       )}
-    </section>
+      </section>
+    </ContentPageLayout>
   );
 }

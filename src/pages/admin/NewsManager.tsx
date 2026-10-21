@@ -19,6 +19,7 @@ const emptyForm = {
   excerpt: "",
   content: "",
   thumbnailUrl: "",
+  thumbnailSensitive: false,
   publishedAt: "",
   status: "DRAFT" as ArticleDTO["status"],
   featured: false,
@@ -46,7 +47,9 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageFilesSensitive, setImageFilesSensitive] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -81,8 +84,10 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
     setEditingId(null);
     setForm(emptyForm);
     setImageFiles([]);
+    setImageFilesSensitive(false);
     setShowForm(true);
     setError("");
+    setNotice("");
   };
 
   const openEdit = (article: ArticleDTO) => {
@@ -94,6 +99,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
       excerpt: article.excerpt || "",
       content: article.content || "",
       thumbnailUrl: article.thumbnailUrl || "",
+      thumbnailSensitive: Boolean(article.thumbnailSensitive),
       publishedAt: article.publishedAt ? article.publishedAt.slice(0, 16) : "",
       status: article.status,
       featured: article.featured,
@@ -125,8 +131,15 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
     };
     try {
       const saved = editingId ? await articleApi.update(editingId, payload) : await articleApi.create(payload);
+      if (payload.status === "PUBLISHED") {
+        setNotice(saved.englishTranslationAvailable
+          ? "Bài viết đã lưu kèm bản dịch tiếng Anh."
+          : "Bài viết đã lưu, nhưng chưa có bản dịch tiếng Anh. Hãy cấu hình DEEPL_API_KEY trong backend rồi lưu hoặc xuất bản lại bài viết.");
+      } else {
+        setNotice("");
+      }
       if (saved.id && imageFiles.length) {
-        await Promise.all(imageFiles.map((file) => articleApi.uploadImage(saved.id!, file)));
+        await Promise.all(imageFiles.map((file) => articleApi.uploadImage(saved.id!, file, imageFilesSensitive)));
       }
       setShowForm(false);
       await load();
@@ -166,6 +179,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
       </div>
 
       {error && <div className="rounded-xl border-l-4 border-brand-red bg-red-50 p-4 font-bold text-brand-redDark">{error}</div>}
+      {notice && <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50 p-4 text-sm font-semibold text-amber-900">{notice}</div>}
 
       <div className="overflow-hidden rounded-2xl border border-brand-red/10 bg-white shadow-pop">
         {loading ? (
@@ -178,7 +192,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
               <div key={article.id} className="flex items-center justify-between gap-4 p-5 hover:bg-brand-bg/40">
                 <div className="min-w-0">
                   <h2 className="truncate font-bold text-brand-text">{article.title}</h2>
-                  <p className="mt-1 text-sm text-gray-500">/{article.slug} · {article.status} {article.featured ? "· Tin nổi bật" : ""}</p>
+                  <p className="mt-1 text-sm text-gray-500">/{article.slug} · {article.status} {article.featured ? "· Tin nổi bật" : ""} {article.status === "PUBLISHED" ? (article.englishTranslationAvailable ? "· Có bản dịch EN" : "· Chưa có bản dịch EN") : ""}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button onClick={() => openEdit(article)} aria-label="Sửa" className="rounded-lg p-2 text-brand-yellow hover:bg-brand-yellow/20"><Edit size={18} /></button>
@@ -203,9 +217,12 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
               <select className="input-style" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ArticleDTO["status"] })}>
                 <option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Đã xuất bản</option><option value="ARCHIVED">Lưu trữ</option>
               </select>
+              <p className="md:col-span-2 -mt-2 text-xs text-gray-500">Khi lưu ở trạng thái “Đã xuất bản”, backend sẽ tự dịch tiêu đề, tóm tắt và nội dung sang tiếng Anh nếu đã cấu hình khóa DeepL.</p>
               <label className="md:col-span-2"><span className="mb-1 block font-bold">Ngày giờ xuất bản <span className="font-normal text-gray-500">(để trống = thời điểm lưu)</span></span><input type="datetime-local" className="input-style" value={form.publishedAt} onChange={(e) => setForm({ ...form, publishedAt: e.target.value })} /></label>
               <input className="input-style md:col-span-2" placeholder="URL ảnh đại diện (không bắt buộc)" value={form.thumbnailUrl} onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })} />
+              <label className="md:col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={form.thumbnailSensitive} onChange={(e) => setForm({ ...form, thumbnailSensitive: e.target.checked })} />Yêu cầu đăng nhập để xem ảnh đại diện</label>
               <label className="md:col-span-2"><span className="mb-1 block font-bold">Ảnh trong bài viết <span className="font-normal text-gray-500">(không bắt buộc)</span></span><input type="file" accept="image/*" multiple onChange={(e) => setImageFiles(Array.from(e.target.files || []))} className="block w-full border border-dashed border-gray-300 p-3 text-sm" /><span className="mt-1 block text-xs text-gray-500">Có thể lưu bài chỉ với tiêu đề, slug và nội dung. Nếu chọn ảnh, ảnh sẽ được tải lên sau khi lưu bài.</span></label>
+              <label className="md:col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={imageFilesSensitive} onChange={(e) => setImageFilesSensitive(e.target.checked)} />Yêu cầu đăng nhập để xem các ảnh vừa tải lên</label>
               <textarea className="input-style md:col-span-2" rows={3} placeholder="Tóm tắt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />
               <textarea className="input-style md:col-span-2" rows={12} placeholder="Nội dung *" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
             </div>

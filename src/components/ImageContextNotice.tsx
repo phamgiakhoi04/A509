@@ -9,22 +9,26 @@ const NOTICE_KEY = "a509.image-context-notice-shown";
 export default function ImageContextNotice() {
   const [visible, setVisible] = useState(false);
   const hideTimer = useRef<number | null>(null);
+  const noticeShown = useRef(false);
 
   useEffect(() => {
     const handleContextMenu = (event: MouseEvent) => {
       const target = event.target;
       const image = target instanceof Element ? target.closest("img") : null;
       if (!image) return;
+      if (noticeShown.current) return;
 
-      let alreadyShown = false;
       try {
-        alreadyShown = window.localStorage.getItem(NOTICE_KEY) === "1";
+        if (window.localStorage.getItem(NOTICE_KEY) === "1") {
+          noticeShown.current = true;
+          return;
+        }
       } catch {
-        // If storage is unavailable, keep the notice limited to this page load.
+        // The ref still limits the notice to once for this page load.
       }
-      if (alreadyShown) return;
 
-      event.preventDefault();
+      // Do not cancel the native context menu: users can still save the image.
+      noticeShown.current = true;
       try {
         window.localStorage.setItem(NOTICE_KEY, "1");
       } catch {

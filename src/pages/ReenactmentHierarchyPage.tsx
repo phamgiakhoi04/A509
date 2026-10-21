@@ -2,6 +2,8 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { adminApi } from "@/api/adminApi";
 import SensitiveImage from "@/components/SensitiveImage";
+import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
 const slugify = (value: string) => value
   .toLowerCase()
@@ -12,6 +14,7 @@ const slugify = (value: string) => value
   .replace(/^-+|-+$/g, "");
 
 export default function ReenactmentHierarchyPage() {
+  const { isAuthenticated } = useAuth();
   const { countrySlug, unitSlug, periodSlug } = useParams();
   const [countries, setCountries] = useState<any[]>([]);
   const [uniforms, setUniforms] = useState<any[]>([]);
@@ -56,7 +59,7 @@ export default function ReenactmentHierarchyPage() {
 
     loadHierarchy();
     return () => { active = false; };
-  }, [periodSlug, countrySlug, unitSlug]);
+  }, [periodSlug, countrySlug, unitSlug, isAuthenticated]);
 
   const country = countries.find((item) => slugify(item.countryName || "") === countrySlug);
 
@@ -87,32 +90,34 @@ export default function ReenactmentHierarchyPage() {
 
 function Cards({ title, items }: { title: string; items: { to: string; label: string; image?: string }[] }) {
   return (
-    <div className="bg-white px-5 py-8 md:px-10 md:py-10">
+    <ContentPageLayout>
       <main className="mx-auto w-full max-w-5xl">
-        <h1 className="mb-6 border-b border-[#ddd] pb-3 font-display text-2xl font-black uppercase text-brand-redDark md:text-3xl">{title}</h1>
+        <ContentPageTitle className="mb-6 border-[#ddd]">{title}</ContentPageTitle>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {items.map((item) => (
             <Link key={item.to} to={item.to} className="group bg-[#f1f1f1] p-4 text-center">
               <div className="mb-3 flex aspect-[4/3] items-center justify-center bg-white">
                 {item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" /> : <span className="text-5xl text-[#ddd]">▧</span>}
               </div>
-              <h2 className="font-sans text-[20px] font-bold text-black group-hover:text-[#b51f24]">{item.label}</h2>
+              <h2 className="font-display text-xl font-bold text-black group-hover:text-[#b51f24]">{item.label}</h2>
             </Link>
           ))}
         </div>
       </main>
-    </div>
+    </ContentPageLayout>
   );
 }
 
-function Detail({ period, country, uniforms, unitSlug }: { period?: { slug: string; label: string }; country?: any; uniforms: any[]; unitSlug?: string }) {
+function Detail({ period, country, uniforms, unitSlug }: { period?: { id: number; slug: string; label: string }; country?: any; uniforms: any[]; unitSlug?: string }) {
   const countryId = country?.id;
   const records = countryId && period
-    ? uniforms.filter((item) => item.country?.id === countryId && item.period === period.slug && (!unitSlug || slugify(item.category?.categoryName || "") === unitSlug))
+    ? uniforms.filter((item) => item.country?.id === countryId
+      && (Number(item.periodCategory?.id) === Number(period.id) || item.period === period.slug)
+      && (!unitSlug || slugify(item.category?.categoryName || "") === unitSlug))
     : [];
 
   return (
-    <div className="bg-white px-5 py-8 md:px-10 md:py-10">
+    <ContentPageLayout>
       <main className="mx-auto w-full max-w-5xl">
         {period && (records.length ? (
           <div className="space-y-12">
@@ -156,6 +161,6 @@ function Detail({ period, country, uniforms, unitSlug }: { period?: { slug: stri
           </div>
         )) || <p className="py-16 text-center text-[#777]">Giai đoạn không tồn tại.</p>}
       </main>
-    </div>
+    </ContentPageLayout>
   );
 }

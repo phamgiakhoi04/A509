@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 export default defineConfig({
+    base: process.env.VITE_BASE || "/",
     plugins: [react()],
     resolve: {
         alias: {
