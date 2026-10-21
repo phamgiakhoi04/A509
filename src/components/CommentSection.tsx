@@ -15,13 +15,11 @@ export default function CommentSection({ uniformId, articleId, variant = "defaul
   const { user, isAuthenticated } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-  }, [uniformId, articleId]);
 
   useEffect(() => {
     if ((uniformId && !isNaN(uniformId)) || (articleId && !isNaN(articleId))) {
@@ -34,11 +32,14 @@ export default function CommentSection({ uniformId, articleId, variant = "defaul
   const fetchComments = async () => {
     try {
       setLoading(true);
+      setLoadError("");
       const data = articleId
         ? await commentApi.getCommentsByArticle(articleId)
         : await commentApi.getCommentsByUniform(uniformId!);
-      setComments(data);
+      setComments(Array.isArray(data) ? data : []);
     } catch (error) {
+      setComments([]);
+      setLoadError("Không thể tải bình luận lúc này. Vui lòng thử lại sau.");
       console.error("Lỗi tải comments:", error);
     } finally {
       setLoading(false);
@@ -170,6 +171,13 @@ export default function CommentSection({ uniformId, articleId, variant = "defaul
 
       {loading ? (
         <div className="text-center py-8 text-brand-text/70">Đang tải bình luận...</div>
+      ) : loadError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+          {loadError}
+          <button type="button" onClick={fetchComments} className="ml-2 font-bold underline">
+            Thử lại
+          </button>
+        </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-brand-text/50 mb-3">Chưa có bình luận nào</p>

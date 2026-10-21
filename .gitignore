@@ -1,8 +1,12 @@
 node_modules
 dist
+dist-check/
 .DS_Store
 .env
-.env.local
+.env.*
+!.env.example
 *.tsbuildinfo
 .vscode
 firebase-debug.log
+coverage/
+.vercel/
