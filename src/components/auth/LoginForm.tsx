@@ -1,3 +1,5 @@
+import { useLanguage as useUILanguage } from "@/contexts/LanguageContext";
+import { translateUI } from "@/utils/uiTranslations";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { authApi } from "@/api/authApi";
@@ -9,6 +11,9 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onLoggedIn }: LoginFormProps) {
+  const { language: uiLanguage } = useUILanguage();
+  const uiText = (text: string) => translateUI(text, uiLanguage);
+
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +22,7 @@ export default function LoginForm({ onLoggedIn }: LoginFormProps) {
 
   const submit = async () => {
     if (!username.trim() || !password) {
-      setError("Vui lòng nhập tên đăng nhập và mật khẩu.");
+      setError(uiText("Vui lòng nhập tên đăng nhập và mật khẩu."));
       return;
     }
     setLoading(true);
@@ -32,7 +37,11 @@ export default function LoginForm({ onLoggedIn }: LoginFormProps) {
       window.setTimeout(() => window.location.reload(), 0);
     } catch (err: any) {
       const responseData = err.response?.data;
-      setError(typeof responseData === "string" ? responseData : "Tên đăng nhập hoặc mật khẩu không đúng.");
+      setError(
+        typeof responseData === "string"
+          ? responseData
+          : uiText("Tên đăng nhập hoặc mật khẩu không đúng."),
+      );
     } finally {
       setLoading(false);
     }
@@ -42,8 +51,12 @@ export default function LoginForm({ onLoggedIn }: LoginFormProps) {
     <div className="space-y-5 animate-fade-in">
       <div className="text-center">
         <LockKeyhole className="mx-auto mb-3 text-brand-red" size={34} />
-        <h2 className="font-display text-2xl font-black uppercase text-brand-redDark">Đăng nhập để xem ảnh</h2>
-        <p className="mt-2 text-sm text-brand-text/70">Ảnh này được giới hạn cho thành viên đã đăng nhập.</p>
+        <h2 className="font-display text-2xl font-black uppercase text-brand-redDark">
+          {uiText("Đăng nhập để xem ảnh")}
+        </h2>
+        <p className="mt-2 text-sm text-brand-text/70">
+          {uiText("Ảnh này được giới hạn cho thành viên đã đăng nhập.")}
+        </p>
       </div>
       {error && (
         <div className="flex items-start gap-2 rounded-r-md border-l-4 border-brand-red bg-red-50 p-3 text-sm font-bold text-brand-redDark">
@@ -51,14 +64,46 @@ export default function LoginForm({ onLoggedIn }: LoginFormProps) {
           <span>{error}</span>
         </div>
       )}
-      <input className="input-style" placeholder="Tên đăng nhập" value={username} onChange={(event) => setUsername(event.target.value)} />
-      <input className="input-style" type="password" placeholder="Mật khẩu" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === "Enter" && submit()} />
-      <Button className="w-full bg-brand-redDark py-3 text-white hover:bg-brand-red" onClick={submit} disabled={loading}>
-        {loading ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}
+      <input
+        className="input-style"
+        placeholder={uiText("Tên đăng nhập")}
+        value={username}
+        onChange={(event) => setUsername(event.target.value)}
+      />
+      <input
+        className="input-style"
+        type="password"
+        placeholder={uiText("Mật khẩu")}
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        onKeyDown={(event) => event.key === "Enter" && submit()}
+      />
+      <Button
+        className="w-full bg-brand-redDark py-3 text-white hover:bg-brand-red"
+        onClick={submit}
+        disabled={loading}
+      >
+        {loading ? uiText("ĐANG ĐĂNG NHẬP...") : uiText("ĐĂNG NHẬP")}
       </Button>
       <div className="flex justify-between text-sm font-bold">
-        <button type="button" className="auth-inline-link text-gray-500 hover:text-brand-red" onClick={() => window.dispatchEvent(new CustomEvent("openForgotPasswordModal"))}>Quên mật khẩu?</button>
-        <button type="button" className="auth-inline-link text-gray-500 hover:text-brand-red" onClick={() => window.dispatchEvent(new CustomEvent("openRegisterModal"))}>Đăng ký</button>
+        <button
+          type="button"
+          className="auth-inline-link text-gray-500 hover:text-brand-red"
+          onClick={() =>
+            window.dispatchEvent(new CustomEvent("openForgotPasswordModal"))
+          }
+        >
+          {uiText("Quên mật khẩu?")}
+        </button>
+        <button
+          type="button"
+          className="auth-inline-link text-gray-500 hover:text-brand-red"
+          onClick={() =>
+            window.dispatchEvent(new CustomEvent("openRegisterModal"))
+          }
+        >
+          {uiText("Đăng ký")}
+        </button>
       </div>
     </div>
   );

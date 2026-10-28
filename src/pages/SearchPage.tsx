@@ -1,193 +1,170 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
-import { adminApi } from "@/api/adminApi";
-import { articleApi } from "@/api/articleApi";
+import axiosClient from "@/api/axiosClient";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getLocalizedArticleText } from "@/utils/articleTranslation";
-import type { ArticleDTO } from "@/types/models";
-import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
-
-type SearchResult = {
+import ContentPageLayout, {
+  ContentPageTitle,
+} from "@/components/layout/ContentPageLayout";
+import SearchForm from "@/components/SearchForm";
+type Result = {
   key: string;
   type: string;
   title: string;
   description: string;
   href: string;
 };
-
-const slugify = (value: string) => value
-  .toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/đ/g, "d")
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-+|-+$/g, "");
-
-const normalize = (value: unknown) => String(value ?? "")
-  .toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/đ/g, "d");
-
+const labels: Record<string, [string, string]> = {
+  all: ["Tất cả", "All"],
+  article: ["Bài viết", "Articles"],
+  uniform: ["Quân trang", "Uniforms"],
+  reenactment: ["Phục dựng", "Reenactment"],
+  country: ["Quốc gia", "Countries"],
+  force: ["Lực lượng", "Forces"],
+  period: ["Giai đoạn", "Periods"],
+};
 export default function SearchPage() {
   const { language } = useLanguage();
+  const en = language === "en";
   const [params, setParams] = useSearchParams();
   const query = (params.get("q") || "").trim();
-  const [input, setInput] = useState(query);
-  const [articles, setArticles] = useState<ArticleDTO[]>([]);
-  const [uniforms, setUniforms] = useState<any[]>([]);
-  const [countries, setCountries] = useState<any[]>([]);
-  const [reenactmentRoots, setReenactmentRoots] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
-  useEffect(() => setInput(query), [query]);
-
+  const type = params.get("type") || "all";
+  const page = Math.max(0, Number(params.get("page")) || 0);
+  const [data, setData] = useState<{
+    items: Result[];
+    total: number;
+    size: number;
+  }>({ items: [], total: 0, size: 20 });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    let active = true;
-    Promise.allSettled([
-      articleApi.getPublished(),
-      adminApi.getAllUniforms(),
-      adminApi.getAllCountries(),
-      adminApi.getRootCategoriesByType("REENACTMENT"),
-    ]).then(([articleResult, uniformResult, countryResult, categoryResult]) => {
-      if (!active) return;
-      setArticles(articleResult.status === "fulfilled" && Array.isArray(articleResult.value) ? articleResult.value : []);
-      setUniforms(uniformResult.status === "fulfilled" && Array.isArray(uniformResult.value) ? uniformResult.value : []);
-      setCountries(countryResult.status === "fulfilled" && Array.isArray(countryResult.value) ? countryResult.value : []);
-      setReenactmentRoots(categoryResult.status === "fulfilled" && Array.isArray(categoryResult.value) ? categoryResult.value : []);
-      setLoadError([articleResult, uniformResult, countryResult, categoryResult].every((result) => result.status === "rejected"));
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-
-    return () => { active = false; };
-  }, []);
-
-  const results = useMemo(() => {
-    if (!query) return [];
-    const needle = normalize(query);
-    const found: SearchResult[] = [];
-    const matches = (...values: unknown[]) => values.some((value) => normalize(value).includes(needle));
-
-    articles.forEach((article) => {
-      if (matches(article.title, article.excerpt, article.content, article.titleEn, article.excerptEn, article.contentEn)) {
-        const localized = getLocalizedArticleText(article, language);
-        found.push({
-          key: `article-${article.id ?? article.slug}`,
-          type: language === "en" ? "Article" : "Bài viết",
-          title: localized.title,
-          description: localized.excerpt || (language === "en" ? "Article in the A509 library." : "Bài viết trong thư viện A509."),
-          href: `/tin-tuc/${article.slug}`,
-        });
-      }
-    });
-
-    uniforms.forEach((uniform) => {
-      if (matches(uniform.name, uniform.description, uniform.history, uniform.period, uniform.country?.countryName, uniform.category?.categoryName)) {
-        found.push({
-          key: `uniform-${uniform.id}`,
-          type: uniform.category?.categoryType === "REENACTMENT" ? "Phục dựng" : "Quân trang",
-          title: uniform.name,
-          description: [uniform.country?.countryName, uniform.category?.categoryName, uniform.period, uniform.description].filter(Boolean).join(" · "),
-          href: `/tai-lieu/quan-trang/${uniform.id}`,
-        });
-      }
-    });
-
-    countries.forEach((country) => {
-      if (matches(country.countryName, country.continent)) {
-        found.push({
-          key: `country-${country.id}`,
-          type: "Quốc gia",
-          title: country.countryName,
-          description: country.continent || "Quốc gia trong mục phục dựng.",
-          href: `/hoat-dong/phuc-dung/${slugify(country.countryName || "")}`,
-        });
-      }
-    });
-
-    const reenactmentRoot = reenactmentRoots.find((item) => slugify(item.categoryName || "") === "phuc-dung-trang-phuc") || reenactmentRoots[0];
-    (reenactmentRoot?.children || []).forEach((force: any) => {
-      const country = countries.find((item) => Number(item.id) === Number(force.countryId));
-      if (!country) return;
-      const countryPath = `/hoat-dong/phuc-dung/${slugify(country.countryName || "")}`;
-      const forceSlug = slugify(force.categoryName || "");
-      const forcePath = `${countryPath}/${forceSlug}`;
-      if (matches(force.categoryName, country.countryName)) {
-        found.push({
-          key: `force-${force.id}`,
-          type: "Lực lượng",
-          title: force.categoryName,
-          description: `Phục dựng · ${country.countryName}`,
-          href: forcePath,
-        });
-      }
-      (force.children || []).forEach((period: any) => {
-        if (!matches(period.categoryName, period.slug, force.categoryName, country.countryName)) return;
-        found.push({
-          key: `period-${period.id}`,
-          type: "Thời kỳ",
-          title: period.categoryName,
-          description: `${force.categoryName} · ${country.countryName}`,
-          href: `${forcePath}/${period.slug || slugify(period.categoryName || "")}`,
-        });
+    if (!query) {
+      setData({ items: [], total: 0, size: 20 });
+      setLoading(false);
+      return;
+    }
+    const abort = new AbortController();
+    setLoading(true);
+    setError(false);
+    axiosClient
+      .get("/api/search", {
+        params: { q: query, type, page },
+        signal: abort.signal,
+      })
+      .then((r) => setData(r.data))
+      .catch(() => {
+        if (!abort.signal.aborted) setError(true);
+      })
+      .finally(() => {
+        if (!abort.signal.aborted) setLoading(false);
       });
-    });
-
-    return found;
-  }, [articles, countries, language, query, reenactmentRoots, uniforms]);
-
-  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const next = input.trim();
-    if (next) setParams({ q: next });
-    else setParams({});
-  };
-
+    return () => abort.abort();
+  }, [query, type, page, language, retry]);
+  function change(next: Record<string, string>) {
+    const p = new URLSearchParams(params);
+    Object.entries(next).forEach(([key, value]) =>
+      value ? p.set(key, value) : p.delete(key),
+    );
+    setParams(p);
+  }
   return (
     <ContentPageLayout className="min-h-[55vh]">
-      <section className="mx-auto w-full max-w-5xl">
-      <ContentPageTitle>{language === "en" ? "Search" : "Tra cứu"}</ContentPageTitle>
-      <p className="mt-2 text-sm text-gray-600">{language === "en" ? "Search articles, uniforms, countries, forces, and reenactment periods." : "Tìm trong bài viết, quân trang, quốc gia, lực lượng và thời kỳ phục dựng."}</p>
-
-      <form onSubmit={submitSearch} className="mt-6 flex border border-gray-300 focus-within:border-brand-red">
-        <input
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder={language === "en" ? "Enter a name, keyword, or phrase..." : "Nhập tên, từ khóa hoặc nội dung..."}
-          aria-label={language === "en" ? "Search terms" : "Từ khóa tra cứu"}
-          className="min-w-0 flex-1 px-4 py-3 outline-none"
-        />
-        <button type="submit" aria-label="Tìm kiếm" className="flex items-center gap-2 bg-brand-red px-5 font-bold text-white hover:bg-brand-redDark">
-          <Search size={18} />
-          {language === "en" ? "Search" : "Tìm"}
-        </button>
-      </form>
-
-      {!query ? (
-        <p className="py-16 text-center text-gray-500">{language === "en" ? "Enter a keyword to search the site." : "Nhập từ khóa để tra cứu nội dung trên trang."}</p>
-      ) : loading ? (
-        <p className="py-16 text-center text-gray-500">{language === "en" ? "Searching..." : "Đang tra cứu..."}</p>
-      ) : loadError ? (
-        <p className="py-16 text-center text-red-700">{language === "en" ? "Search data could not be loaded. Please reload the page." : "Không tải được dữ liệu tra cứu. Vui lòng tải lại trang."}</p>
-      ) : results.length === 0 ? (
-        <p className="py-16 text-center text-gray-500">{language === "en" ? `No results found for “${query}”.` : `Không tìm thấy kết quả cho “${query}”.`}</p>
-      ) : (
-        <>
-          <p className="mt-6 text-sm text-gray-500">{language === "en" ? `${results.length} results found` : `Tìm thấy ${results.length} kết quả`}</p>
-          <div className="mt-2 divide-y divide-gray-200 border-y border-gray-200">
-            {results.map((result) => (
-              <Link key={result.key} to={result.href} className="block py-4 hover:text-brand-red">
-                <span className="text-xs font-bold uppercase tracking-wide text-brand-red">{language === "en" ? ({ "Bài viết": "Article", "Quân trang": "Uniform", "Phục dựng": "Reenactment", "Quốc gia": "Country", "Lực lượng": "Force", "Thời kỳ": "Period" } as Record<string, string>)[result.type] || result.type : result.type}</span>
-                <h2 className="mt-1 font-display text-xl font-bold">{result.title}</h2>
-                {result.description && <p className="mt-1 line-clamp-2 text-sm text-gray-600">{result.description}</p>}
-              </Link>
+      <section className="min-w-0">
+        <ContentPageTitle>{en ? "Search" : "Tra cứu"}</ContentPageTitle>
+        <p className="mb-5 text-sm text-gray-600">
+          {en
+            ? "Search articles, uniforms, countries, forces and reenactment periods."
+            : "Tìm bài viết, quân trang, quốc gia, lực lượng và giai đoạn phục dựng."}
+        </p>
+        <SearchForm key={`${query}-${type}`} initialQuery={query} type={type} />
+        <label className="mt-4 flex items-center gap-3 text-sm">
+          {en ? "Content type" : "Loại nội dung"}
+          <select
+            value={type}
+            className="rounded border bg-white p-2"
+            onChange={(e) => change({ type: e.target.value, page: "" })}
+          >
+            {Object.entries(labels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label[en ? 1 : 0]}
+              </option>
             ))}
-          </div>
-        </>
-      )}
+          </select>
+        </label>
+        {!query ? (
+          <p className="py-16 text-center text-gray-500">
+            {en
+              ? "Enter a keyword to search."
+              : "Nhập từ khóa để bắt đầu tra cứu."}
+          </p>
+        ) : loading ? (
+          <p role="status" className="py-16 text-center">
+            {en ? "Searching..." : "Đang tra cứu..."}
+          </p>
+        ) : error ? (
+          <p role="alert" className="py-12 text-red-700">
+            {en
+              ? "Could not load search results."
+              : "Không tải được kết quả tra cứu."}
+            <button
+              className="ml-3 underline"
+              onClick={() => setRetry((n) => n + 1)}
+            >
+              {en ? "Retry" : "Thử lại"}
+            </button>
+          </p>
+        ) : (
+          <>
+            <p className="my-5 text-sm text-gray-500">
+              {en
+                ? `${data.total} results for “${query}”`
+                : `${data.total} kết quả cho “${query}”`}
+            </p>
+            <div className="divide-y border-y">
+              {data.items.map((result) => (
+                <Link
+                  key={result.key}
+                  to={result.href}
+                  className="block py-5 hover:text-brand-red"
+                >
+                  <span className="text-xs font-bold uppercase text-brand-red">
+                    {labels[result.type]?.[en ? 1 : 0] || result.type}
+                  </span>
+                  <h2 className="mt-1 font-display text-xl font-bold">
+                    {result.title}
+                  </h2>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-600">
+                    {result.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+            {data.total > data.size && (
+              <nav
+                aria-label={en ? "Search pages" : "Trang kết quả"}
+                className="mt-6 flex items-center justify-between gap-3 text-sm"
+              >
+                <button
+                  disabled={page === 0}
+                  className="rounded border px-4 py-2 disabled:opacity-30"
+                  onClick={() => change({ page: String(page - 1) })}
+                >
+                  ← {en ? "Previous" : "Trước"}
+                </button>
+                <span>
+                  {page + 1} / {Math.ceil(data.total / data.size)}
+                </span>
+                <button
+                  disabled={(page + 1) * data.size >= data.total}
+                  className="rounded border px-4 py-2 disabled:opacity-30"
+                  onClick={() => change({ page: String(page + 1) })}
+                >
+                  {en ? "Next" : "Sau"} →
+                </button>
+              </nav>
+            )}
+          </>
+        )}
       </section>
     </ContentPageLayout>
   );

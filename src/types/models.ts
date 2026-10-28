@@ -1,6 +1,6 @@
-export type NavItem = { 
-  to: string; 
-  label: string; 
+export type NavItem = {
+  to: string;
+  label: string;
 };
 
 export type User = {
@@ -88,11 +88,11 @@ export type CountryOption = {
   countryName: string;
 };
 
-export type Unit = { 
-  slug: string; 
-  countrySlug: string; 
-  name: string; 
-  description: string; 
+export type Unit = {
+  slug: string;
+  countrySlug: string;
+  name: string;
+  description: string;
 };
 
 export type PeriodArticle = {
@@ -108,10 +108,10 @@ export type PeriodArticle = {
   updatedAt: string;
 };
 
-export type EquipmentCategory = { 
-  slug: string; 
-  name: string; 
-  description: string; 
+export type EquipmentCategory = {
+  slug: string;
+  name: string;
+  description: string;
 };
 
 export type PostType = "tai-lieu" | "tin-tuc";
@@ -139,6 +139,7 @@ export type Article = {
   slug: string;
   excerpt?: string;
   content?: string;
+  translationStatus?: "missing" | "partial" | "complete";
   titleEn?: string;
   excerptEn?: string;
   contentEn?: string;
@@ -193,6 +194,7 @@ export type ArticleDTO = {
   slug: string;
   excerpt: string;
   content: string;
+  translationStatus?: "missing" | "partial" | "complete";
   titleEn?: string;
   excerptEn?: string;
   contentEn?: string;

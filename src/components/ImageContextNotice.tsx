@@ -1,3 +1,5 @@
+import { useLanguage as useUILanguage } from "@/contexts/LanguageContext";
+import { translateUI } from "@/utils/uiTranslations";
 import { useEffect, useRef, useState } from "react";
 
 const NOTICE_KEY = "a509.image-context-notice-shown";
@@ -7,6 +9,9 @@ const NOTICE_KEY = "a509.image-context-notice-shown";
  * After that first acknowledgement, the browser context menu works normally.
  */
 export default function ImageContextNotice() {
+  const { language: uiLanguage } = useUILanguage();
+  const uiText = (text: string) => translateUI(text, uiLanguage);
+
   const [visible, setVisible] = useState(false);
   const hideTimer = useRef<number | null>(null);
   const noticeShown = useRef(false);
@@ -55,9 +60,13 @@ export default function ImageContextNotice() {
       aria-live="polite"
       className="fixed bottom-5 left-1/2 z-[100] w-[min(92vw,34rem)] -translate-x-1/2 rounded-xl border border-brand-red/20 bg-white px-5 py-4 text-sm text-brand-text shadow-2xl"
     >
-      <p className="font-bold text-brand-redDark">Lưu ý khi sử dụng hình ảnh</p>
+      <p className="font-bold text-brand-redDark">
+        {uiText("Lưu ý khi sử dụng hình ảnh")}
+      </p>
       <p className="mt-1 leading-5">
-        Vui lòng ghi nguồn và tôn trọng bản quyền khi lưu hoặc sử dụng lại ảnh.
+        {uiText(
+          "Vui lòng ghi nguồn và tôn trọng bản quyền khi lưu hoặc sử dụng lại ảnh.",
+        )}{" "}
       </p>
     </div>
   );

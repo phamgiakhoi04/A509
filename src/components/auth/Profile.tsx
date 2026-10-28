@@ -1,3 +1,5 @@
+import { useLanguage as useUILanguage } from "@/contexts/LanguageContext";
+import { translateUI } from "@/utils/uiTranslations";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/ui/Button";
@@ -19,6 +21,9 @@ interface Props {
 }
 
 export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
+  const { language: uiLanguage } = useUILanguage();
+  const uiText = (text: string) => translateUI(text, uiLanguage);
+
   const navigate = useNavigate();
   const [avatarPreview, setAvatarPreview] = useState(user.avatarUrl || "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,13 +45,13 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Vui lòng chọn tệp hình ảnh.");
+      setError(uiText("Vui lòng chọn tệp hình ảnh."));
       event.target.value = "";
       return;
     }
 
-    if (file.size > 30 * 1024 * 1024) {
-      setError("Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 30MB.");
+    if (file.size > 5 * 1024 * 1024) {
+      setError(uiText("Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB."));
       event.target.value = "";
       return;
     }
@@ -65,7 +70,7 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
 
   const handleSave = async () => {
     if (!selectedFile) {
-      setError("Vui lòng chọn ảnh đại diện mới.");
+      setError(uiText("Vui lòng chọn ảnh đại diện mới."));
       return;
     }
 
@@ -74,7 +79,9 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
     setLoading(true);
 
     try {
-      const updatedData = await authApi.updateProfile({ avatarFile: selectedFile });
+      const updatedData = await authApi.updateProfile({
+        avatarFile: selectedFile,
+      });
 
       const freshAvatarUrl = updatedData.avatarUrl
         ? `${updatedData.avatarUrl}${updatedData.avatarUrl.includes("?") ? "&" : "?"}v=${Date.now()}`
@@ -93,14 +100,15 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
 
       setAvatarPreview(freshAvatarUrl || "");
       setSelectedFile(null);
-      setSuccessMsg("Đã cập nhật ảnh đại diện!");
+      setSuccessMsg(uiText("Đã cập nhật ảnh đại diện!"));
 
       window.setTimeout(onClose, 900);
     } catch (err: any) {
       const responseData = err.response?.data;
-      const message = typeof responseData === "string"
-        ? responseData
-        : responseData?.message || "Không thể cập nhật ảnh đại diện.";
+      const message =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message || uiText("Không thể cập nhật ảnh đại diện.");
       setError(message);
     } finally {
       setLoading(false);
@@ -130,7 +138,7 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
                   }}
                 />
               ) : (
-              <div className="w-full h-full flex items-center justify-center bg-brand-bg text-brand-redDark font-black text-5xl">
+                <div className="w-full h-full flex items-center justify-center bg-brand-bg text-brand-redDark font-black text-5xl">
                   {(user.username?.[0] || "U").toUpperCase()}
                 </div>
               )}
@@ -139,7 +147,7 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
             <label className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
               <Camera className="text-white mb-1" size={32} />
               <span className="text-[10px] text-white font-bold uppercase">
-                Đổi ảnh
+                {uiText("Đổi ảnh")}{" "}
               </span>
               <input
                 type="file"
@@ -158,7 +166,8 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
         <div className="flex-1 flex flex-col min-w-0 bg-white">
           <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-white sticky top-0 z-20">
             <h2 className="text-lg font-display font-black text-brand-redDark uppercase flex items-center gap-2">
-              <UserIcon size={20} className="text-brand-yellow" /> Cập nhật ảnh đại diện
+              <UserIcon size={20} className="text-brand-yellow" />{" "}
+              {uiText("Cập nhật ảnh đại diện")}{" "}
             </h2>
             <button
               onClick={onClose}
@@ -183,15 +192,21 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
 
           <div className="p-6 flex-1">
             <div className="border border-dashed border-gray-300 bg-[#fafafa] p-5 text-center text-sm leading-relaxed text-gray-600">
-              Chọn ảnh mới bằng cách di chuột lên ảnh đại diện. Chỉ có ảnh đại diện được thay đổi; tên, email và các thông tin khác vẫn giữ nguyên.
+              {uiText(
+                "Chọn ảnh mới bằng cách di chuột lên ảnh đại diện. Chỉ có ảnh đại diện được thay đổi; tên, email và các thông tin khác vẫn giữ nguyên.",
+              )}{" "}
             </div>
-            {(user.roleName === "ADMIN" || user.roles?.some((role) => role.name === "ADMIN")) && (
+            {(user.roleName === "ADMIN" ||
+              user.roles?.some((role) => role.name === "ADMIN")) && (
               <button
                 type="button"
-                onClick={() => { onClose(); navigate("/admin/dashboard"); }}
+                onClick={() => {
+                  onClose();
+                  navigate("/admin/dashboard");
+                }}
                 className="mt-4 w-full border border-brand-red bg-white px-4 py-3 text-sm font-black text-brand-redDark transition-colors hover:bg-brand-red hover:text-white"
               >
-                ĐI TỚI KHU VỰC ĐĂNG NỘI DUNG / ẢNH
+                {uiText("ĐI TỚI KHU VỰC ĐĂNG NỘI DUNG / ẢNH")}{" "}
               </button>
             )}
           </div>
@@ -203,10 +218,10 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
               className="w-full py-3.5 bg-brand-redDark text-white font-black text-lg shadow-pop hover:shadow-pop-hover active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               {loading ? (
-                "ĐANG LƯU..."
+                uiText("ĐANG LƯU...")
               ) : (
                 <>
-                  <Save size={20} /> LƯU ẢNH
+                  <Save size={20} /> {uiText("LƯU ẢNH")}{" "}
                 </>
               )}
             </Button>

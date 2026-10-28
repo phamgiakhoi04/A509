@@ -1,3 +1,6 @@
+import TranslationNotice from "@/components/TranslationNotice";
+import { useLanguage as useUILanguage } from "@/contexts/LanguageContext";
+import { translateUI } from "@/utils/uiTranslations";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
@@ -10,12 +13,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import ContentPageLayout from "@/components/layout/ContentPageLayout";
 
 export default function UniformDetailPage() {
+  const { language: uiLanguage } = useUILanguage();
+  const uiText = (text: string) => translateUI(text, uiLanguage);
+
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [referenceImages, setReferenceImages] = useState<{ id: number; imageUrl: string | null; description?: string; sensitive?: boolean }[]>([]);
+  const [referenceImages, setReferenceImages] = useState<
+    {
+      id: number;
+      imageUrl: string | null;
+      description?: string;
+      sensitive?: boolean;
+    }[]
+  >([]);
 
   useEffect(() => {
     if (id) {
@@ -47,8 +60,13 @@ export default function UniformDetailPage() {
     return (
       <ContentPageLayout className="flex min-h-[55vh] items-center justify-center">
         <div className="text-center">
-          <Loader2 className="animate-spin text-brand-red mx-auto mb-4" size={48} />
-          <p className="font-display text-2xl text-brand-text/70">Đang tải...</p>
+          <Loader2
+            className="animate-spin text-brand-red mx-auto mb-4"
+            size={48}
+          />
+          <p className="font-display text-2xl text-brand-text/70">
+            {uiText("Đang tải...")}
+          </p>
         </div>
       </ContentPageLayout>
     );
@@ -58,9 +76,14 @@ export default function UniformDetailPage() {
     return (
       <ContentPageLayout className="flex min-h-[55vh] items-center justify-center text-center">
         <div>
-          <p className="font-display text-3xl text-brand-text/50 mb-6">Không tìm thấy quân trang</p>
-          <Link to="/quan-trang" className="inline-block px-6 py-3 bg-brand-red text-white font-bold rounded-xl hover:bg-brand-redDark transition-all">
-            ← Quay lại danh sách
+          <p className="font-display text-3xl text-brand-text/50 mb-6">
+            {uiText("Không tìm thấy quân trang")}
+          </p>
+          <Link
+            to="/quan-trang"
+            className="inline-block px-6 py-3 bg-brand-red text-white font-bold rounded-xl hover:bg-brand-redDark transition-all"
+          >
+            {uiText("← Quay lại danh sách")}{" "}
           </Link>
         </div>
       </ContentPageLayout>
@@ -71,7 +94,11 @@ export default function UniformDetailPage() {
     <ContentPageLayout className="min-h-[55vh]">
       <section className="border-b border-[#ddd] pb-6">
         <div className="mx-auto w-full max-w-5xl">
-          <ContentPageHeading title={item.name} trail="Tài liệu / Quân trang" />
+          <ContentPageHeading
+            title={item.name}
+            trail={uiText("Tài liệu / Quân trang")}
+          />
+          <TranslationNotice status={item.translationStatus} />
           {item.country?.countryName && (
             <div className="mt-4 inline-block border-l-4 border-brand-red bg-[#f1f1f1] px-3 py-2 text-sm font-bold uppercase tracking-wide text-brand-redDark">
               {item.country.countryName}
@@ -106,7 +133,12 @@ export default function UniformDetailPage() {
                               : "border-transparent hover:border-brand-yellow hover:scale-105"
                           }`}
                         >
-                          <SensitiveImage src={img.imageUrl || undefined} sensitive={Boolean(img.sensitive)} alt={`${item.name} - ${idx + 1}`} className="h-full w-full object-cover" />
+                          <SensitiveImage
+                            src={img.imageUrl || undefined}
+                            sensitive={Boolean(img.sensitive)}
+                            alt={`${item.name} - ${idx + 1}`}
+                            className="h-full w-full object-cover"
+                          />
                         </button>
                       ))}
                     </div>
@@ -114,7 +146,9 @@ export default function UniformDetailPage() {
                 </>
               ) : (
                 <div className="flex aspect-[4/3] items-center justify-center bg-[#f1f1f1]">
-                  <span className="text-brand-red/30 font-black text-7xl">?</span>
+                  <span className="text-brand-red/30 font-black text-7xl">
+                    ?
+                  </span>
                 </div>
               )}
             </div>
@@ -123,23 +157,36 @@ export default function UniformDetailPage() {
           <div className="order-1 space-y-6 lg:order-2">
             <div className="border-b border-[#ddd] pb-5">
               <h2 className="mb-4 border-b border-[#ddd] pb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">
-                THÔNG TIN CHI TIẾT
+                {uiText("THÔNG TIN CHI TIẾT")}{" "}
               </h2>
               <div className="grid gap-4">
+                <TranslationNotice status={item.translationStatus} />
                 {item.country?.countryName && (
                   <div className="flex items-start gap-4">
-                    <MapPin className="mt-1 flex-shrink-0 text-brand-red" size={24} />
+                    <MapPin
+                      className="mt-1 flex-shrink-0 text-brand-red"
+                      size={24}
+                    />
                     <div>
-                      <div className="text-sm font-black text-brand-text/60 uppercase tracking-wider mb-1">Quốc gia</div>
-                      <div className="text-xl font-bold text-brand-text">{item.country.countryName}</div>
+                      <div className="text-sm font-black text-brand-text/60 uppercase tracking-wider mb-1">
+                        {uiText("Quốc gia")}
+                      </div>
+                      <div className="text-xl font-bold text-brand-text">
+                        {item.country.countryName}
+                      </div>
                     </div>
                   </div>
                 )}
                 {item.createdAt && (
                   <div className="flex items-start gap-4">
-                    <Calendar className="mt-1 flex-shrink-0 text-brand-red" size={24} />
+                    <Calendar
+                      className="mt-1 flex-shrink-0 text-brand-red"
+                      size={24}
+                    />
                     <div>
-                      <div className="text-sm font-black text-brand-text/60 uppercase tracking-wider mb-1">Ngày thêm</div>
+                      <div className="text-sm font-black text-brand-text/60 uppercase tracking-wider mb-1">
+                        {uiText("Ngày thêm")}
+                      </div>
                       <div className="text-xl font-bold text-brand-text">
                         {new Date(item.createdAt).toLocaleDateString("vi-VN", {
                           day: "2-digit",
@@ -155,15 +202,23 @@ export default function UniformDetailPage() {
 
             {item.description && (
               <div className="border-b border-[#ddd] pb-5">
-                <h2 className="mb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">MÔ TẢ</h2>
-                <p className="whitespace-pre-wrap text-base leading-7 text-brand-text/90">{item.description}</p>
+                <h2 className="mb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">
+                  {uiText("MÔ TẢ")}
+                </h2>
+                <p className="whitespace-pre-wrap text-base leading-7 text-brand-text/90">
+                  {item.description}
+                </p>
               </div>
             )}
 
             {item.history && (
               <div className="border-b border-[#ddd] pb-5">
-                <h2 className="mb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">LỊCH SỬ SỬ DỤNG</h2>
-                <p className="whitespace-pre-wrap text-base leading-7 text-brand-text/90">{item.history}</p>
+                <h2 className="mb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">
+                  {uiText("LỊCH SỬ SỬ DỤNG")}
+                </h2>
+                <p className="whitespace-pre-wrap text-base leading-7 text-brand-text/90">
+                  {item.history}
+                </p>
               </div>
             )}
           </div>
@@ -177,9 +232,21 @@ export default function UniformDetailPage() {
               </h2>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {referenceImages.map((image) => (
-                  <figure key={image.id} className="overflow-hidden border border-[#ddd] bg-[#FBF9F5]">
-                    <SensitiveImage src={image.imageUrl || undefined} sensitive={Boolean(image.sensitive)} alt={image.description || item.name} className="aspect-[4/3] w-full object-cover" />
-                    {image.description && <figcaption className="p-3 text-sm leading-relaxed text-brand-text/80">{image.description}</figcaption>}
+                  <figure
+                    key={image.id}
+                    className="overflow-hidden border border-[#ddd] bg-[#FBF9F5]"
+                  >
+                    <SensitiveImage
+                      src={image.imageUrl || undefined}
+                      sensitive={Boolean(image.sensitive)}
+                      alt={image.description || item.name}
+                      className="aspect-[4/3] w-full object-cover"
+                    />
+                    {image.description && (
+                      <figcaption className="p-3 text-sm leading-relaxed text-brand-text/80">
+                        {image.description}
+                      </figcaption>
+                    )}
                   </figure>
                 ))}
               </div>

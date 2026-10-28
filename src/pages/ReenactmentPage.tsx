@@ -1,25 +1,88 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
-import LegacySidebar from "@/components/layout/LegacySidebar";
-import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
+import ContentPageLayout, {
+  ContentPageTitle,
+} from "@/components/layout/ContentPageLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ContentPageHeading from "@/components/layout/ContentPageHeading";
 
-const slugify = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export default function ReenactmentPage() {
   const { language } = useLanguage();
   const [countries, setCountries] = useState<any[]>([]);
-  useEffect(() => { adminApi.getAllCountries().then((data) => setCountries(data || [])).catch(() => setCountries([])); }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    adminApi
+      .getAllCountries()
+      .then((data) => {
+        if (active) setCountries(data || []);
+      })
+      .catch(() => {
+        if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  return <ContentPageLayout sidebar={<LegacySidebar />}>
-    <ContentPageHeading title={language === "en" ? "Uniform reenactment" : "Phục dựng trang phục"}
-      trail={language === "en" ? "Activities / Uniform reenactment" : "Hoạt động / Phục dựng trang phục"} />
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">{countries.map((country) => {
-      const slug = slugify(country.countryName || "");
-      return <Link key={country.id || slug} to={`/hoat-dong/phuc-dung/${slug}`} className="group bg-[#f1f1f1] p-4 text-center"><div className="mb-3 flex aspect-[4/3] items-center justify-center overflow-hidden bg-white">{country.flagImageUrl ? <img src={country.flagImageUrl} alt={country.countryName} className="h-full w-full object-cover" /> : <span className="text-6xl text-[#ddd]">▧</span>}</div><h2 className="font-display text-xl font-bold text-black group-hover:text-[#b51f24]">{country.countryName}</h2></Link>;
-    })}</div>
-    {!countries.length && <p className="py-16 text-center text-[#777]">{language === "en" ? "No countries have been configured for reenactment yet." : "Chưa có quốc gia phục dựng trong cơ sở dữ liệu."}</p>}
-  </ContentPageLayout>;
+  return (
+    <ContentPageLayout>
+      <ContentPageHeading
+        title={
+          language === "en" ? "Uniform reenactment" : "Phục dựng trang phục"
+        }
+        trail={
+          language === "en"
+            ? "Activities / Uniform reenactment"
+            : "Hoạt động / Phục dựng trang phục"
+        }
+      />
+      {loading && (
+        <p role="status" className="py-10">
+          {language === "en" ? "Loading..." : "Đang tải..."}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="py-10 text-red-700">
+          {language === "en"
+            ? "Could not load countries. Please reload the page."
+            : "Không tải được danh sách quốc gia. Vui lòng tải lại trang."}
+        </p>
+      )}
+      <ul className="divide-y border-y border-gray-200">
+        {countries.map((country) => (
+          <li key={country.id}>
+            <Link
+              to={`/hoat-dong/phuc-dung/${slugify(country.sourceName || country.countryName || "")}`}
+              className="flex justify-between py-5 font-display text-xl font-bold hover:text-brand-red"
+            >
+              {country.countryName}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {!loading && !error && !countries.length && (
+        <p className="py-16 text-center text-[#777]">
+          {language === "en"
+            ? "No countries have been configured for reenactment yet."
+            : "Chưa có quốc gia phục dựng trong cơ sở dữ liệu."}
+        </p>
+      )}
+    </ContentPageLayout>
+  );
 }

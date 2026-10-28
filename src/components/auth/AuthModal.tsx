@@ -1,3 +1,5 @@
+import { useLanguage as useUILanguage } from "@/contexts/LanguageContext";
+import { translateUI } from "@/utils/uiTranslations";
 import RegisterForm from "./Register";
 import ForgotPasswordForm from "./ForgotPassword";
 import ResetPasswordForm from "./ResetPasswordForm";
@@ -11,14 +13,21 @@ interface AuthModalProps {
   resetToken?: string | null;
 }
 
-export default function AuthModal({ onClose, initialView = "REGISTER", resetToken }: AuthModalProps) {
+export default function AuthModal({
+  onClose,
+  initialView = "REGISTER",
+  resetToken,
+}: AuthModalProps) {
+  const { language: uiLanguage } = useUILanguage();
+  const uiText = (text: string) => translateUI(text, uiLanguage);
+
   const view = initialView;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button
         type="button"
-        aria-label="Đóng"
+        aria-label={uiText("Đóng")}
         className="absolute inset-0 cursor-default bg-brand-redDark/80 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -27,7 +36,7 @@ export default function AuthModal({ onClose, initialView = "REGISTER", resetToke
         <button
           type="button"
           onClick={onClose}
-          aria-label="Đóng"
+          aria-label={uiText("Đóng")}
           className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center bg-[#f1f1f1] font-bold text-[#555] transition-colors hover:bg-[#c62828] hover:text-white"
         >
           ✕
@@ -45,9 +54,13 @@ export default function AuthModal({ onClose, initialView = "REGISTER", resetToke
           )}
 
           {view === "RESET" && (
-            <ResetPasswordForm token={resetToken} onDone={onClose} onBackHome={onClose} embedded />
+            <ResetPasswordForm
+              token={resetToken}
+              onDone={onClose}
+              onBackHome={onClose}
+              embedded
+            />
           )}
-
         </div>
       </div>
 
