@@ -16,8 +16,7 @@ export default function ContactPage() {
     catch { setStatus("error"); } finally { setSending(false); }
   };
   return <ContentPageLayout sidebar={<LegacySidebar />}>
-    <div className="mb-7 bg-[#f1f1f1] px-3 py-2 text-[16px]">{language === "en" ? "Contact" : "Liên hệ"}</div>
-    <ContentPageTitle className="text-[#b51f24]">{language === "en" ? "Contact A509" : "Liên hệ với A509"}</ContentPageTitle>
+    <ContentPageTitle>{language === "en" ? "Contact A509" : "Liên hệ với A509"}</ContentPageTitle>
     <p className="mb-7 text-[16px] leading-7">{language === "en" ? "Questions, research materials to contribute, or feedback? Send us a message." : "Nếu bạn có câu hỏi, tư liệu muốn đóng góp hoặc ý kiến về nội dung, hãy gửi tin nhắn cho chúng tôi."}</p>
     <div className="mb-7 border-l-4 border-[#b51f24] bg-[#f1f1f1] px-4 py-3 leading-7">Email: <a className="text-[#b51f24]" href="mailto:a509vietnam@gmail.com">a509vietnam@gmail.com</a><br />{language === "en" ? "Location: Vietnam" : "Địa chỉ: Việt Nam"}</div>
     {status === "success" && <div className="mb-5 border-l-4 border-green-600 bg-green-50 p-3 font-bold text-green-700">{language === "en" ? "Your message has been sent." : "Đã gửi tin nhắn thành công."}</div>}

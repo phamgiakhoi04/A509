@@ -1,16 +1,18 @@
+import { articleSection, categoriesForSection, defaultCategoryIds, sectionLabels, type ClassifiedSection, type ContentSection, type ContentCategory } from "@/utils/contentSections";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Edit, Loader2, Plus, Trash2, X } from "lucide-react";
 import { articleApi } from "@/api/articleApi";
 import type { ArticleDTO } from "@/types/models";
+import { apiError } from "@/utils/apiError";
 
-type Category = { id: number; slug: string; name: string };
+type Category = ContentCategory;
 
 const getErrorMessage = (error: any, fallback: string) => {
   if (error?.response?.status === 403) {
-    return "Phiên đăng nhập không có quyền quản lý tin tức. Hãy đăng xuất, đăng nhập lại và khởi động lại backend sau khi cập nhật.";
+    return "Bạn không có quyền quản lý nội dung này. Hãy đăng nhập bằng tài khoản ADMIN.";
   }
-  return error?.response?.data?.message || error?.response?.data || error?.message || fallback;
+  return apiError(error, fallback);
 };
 
 const emptyForm = {
@@ -37,8 +39,11 @@ const slugify = (value: string) => value
 
 const normalizeDateTime = (value: string) => value && value.length === 16 ? `${value}:00` : (value || undefined);
 
-export default function NewsManager({ title = "Quản lý tin tức", itemLabel = "bài viết" }: { title?: string; itemLabel?: string } = {}) {
+export default function NewsManager({ title = "Quản lý tin tức", itemLabel = "bài viết", scope = "news" }: { title?: string; itemLabel?: string; scope?: "news" | "documents" } = {}) {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const selected = params.get("section") || "news";
+  const activeSection: ClassifiedSection = scope === "documents" ? "documents" : ["news", "explore", "culture", "activities", "unclassified", "mixed"].includes(selected) ? selected as ClassifiedSection : "news";
   const [articles, setArticles] = useState<ArticleDTO[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -80,9 +85,13 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
 
   useEffect(() => { load(); }, []);
 
+  const visibleArticles = articles.filter((article) => articleSection(article, categories) === activeSection);
+  const visibleCategories = activeSection === "mixed" || activeSection === "unclassified" ? [] : categoriesForSection(activeSection, categories);
+
   const openCreate = () => {
+    if (activeSection === "mixed" || activeSection === "unclassified") return;
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, categoryIds: defaultCategoryIds(activeSection, categories) });
     setImageFiles([]);
     setImageFilesSensitive(false);
     setShowForm(true);
@@ -91,7 +100,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
   };
 
   const openEdit = (article: ArticleDTO) => {
-    if (article.id) { navigate(`/admin/tin-tuc/edit/${article.id}`); return; }
+    if (article.id) { navigate(scope === "documents" ? `/admin/tai-lieu/edit/${article.id}` : `/admin/tin-tuc/edit/${article.id}?section=${activeSection}`); return; }
     setEditingId(article.id ?? null);
     setForm({
       title: article.title,
@@ -129,6 +138,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
       thumbnailUrl: form.thumbnailUrl.trim() || undefined,
       publishedAt: normalizeDateTime(form.publishedAt),
     };
+    if (articleSection(payload, categories) !== activeSection) { setSaving(false); setError("Hãy chọn danh mục thuộc đúng nhóm nội dung đang quản lý."); return; }
     try {
       const saved = editingId ? await articleApi.update(editingId, payload) : await articleApi.create(payload);
       if (payload.status === "PUBLISHED") {
@@ -171,24 +181,26 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
 
   return (
     <div className="admin-page relative space-y-6 p-8 font-body">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-4xl font-black uppercase text-brand-redDark">{title}</h1>
-        <button onClick={openCreate} className="flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-pop hover:bg-brand-redDark">
+        <button onClick={openCreate} disabled={activeSection === "mixed" || activeSection === "unclassified"} className="flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-pop hover:bg-brand-redDark">
           <Plus size={20} /> Thêm {itemLabel}
         </button>
       </div>
 
+      {scope === "news" && <label className="block max-w-sm text-sm font-bold">Nhóm nội dung<select aria-label="Nhóm nội dung" value={activeSection} onChange={(event) => setParams({ section: event.target.value })} className="mt-2 block w-full border border-[#bbb] bg-white p-3">{(["news", "explore", "culture", "activities", "unclassified", "mixed"] as ClassifiedSection[]).map((section) => <option key={section} value={section}>{sectionLabels[section]}</option>)}</select></label>}
+      <p className="text-sm text-gray-500">Đang hiển thị: {sectionLabels[activeSection]}. {visibleArticles.length} nội dung.</p>
       {error && <div className="rounded-xl border-l-4 border-brand-red bg-red-50 p-4 font-bold text-brand-redDark">{error}</div>}
       {notice && <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50 p-4 text-sm font-semibold text-amber-900">{notice}</div>}
 
       <div className="overflow-hidden rounded-2xl border border-brand-red/10 bg-white shadow-pop">
         {loading ? (
           <div className="flex justify-center p-16"><Loader2 className="animate-spin text-brand-red" size={36} /></div>
-        ) : articles.length === 0 ? (
-          <p className="p-16 text-center text-gray-500">Chưa có bài viết nào.</p>
+        ) : visibleArticles.length === 0 ? (
+          <p className="p-16 text-center text-gray-500">Chưa có {itemLabel} trong nhóm {sectionLabels[activeSection]}.</p>
         ) : (
           <div className="divide-y divide-gray-100">
-            {articles.map((article) => (
+            {visibleArticles.map((article) => (
               <div key={article.id} className="flex items-center justify-between gap-4 p-5 hover:bg-brand-bg/40">
                 <div className="min-w-0">
                   <h2 className="truncate font-bold text-brand-text">{article.title}</h2>
@@ -208,7 +220,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <form onSubmit={save} className="admin-article-form max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#ddd] bg-white p-8 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-2xl font-black uppercase text-brand-redDark">{editingId ? "Sửa bài viết" : "Thêm bài viết"}</h2>
+              <h2 className="font-display text-2xl font-black uppercase text-brand-redDark">{editingId ? `Sửa ${itemLabel}` : `Thêm ${itemLabel}`}</h2>
               <button type="button" onClick={() => setShowForm(false)} aria-label="Đóng" className="rounded-lg bg-gray-100 p-2 hover:bg-gray-200"><X size={20} /></button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -232,7 +244,7 @@ export default function NewsManager({ title = "Quản lý tin tức", itemLabel 
             </div>
             <div className="mt-4">
               <p className="mb-2 font-bold">Danh mục</p>
-              <div className="flex flex-wrap gap-2">{categories.length ? categories.map((category) => <button type="button" key={category.id} onClick={() => toggleCategory(category.id)} className={`rounded-full border px-3 py-1 text-sm ${form.categoryIds.includes(category.id) ? "border-brand-red bg-brand-red text-white" : "border-gray-300 text-brand-text"}`}>{category.name}</button>) : <p className="text-sm text-gray-500">Chưa tải được danh mục. Hãy kiểm tra kết nối backend.</p>}</div>
+              <div className="flex flex-wrap gap-2">{visibleCategories.length ? visibleCategories.map((category) => <button type="button" key={category.id} onClick={() => toggleCategory(category.id)} className={`rounded-full border px-3 py-1 text-sm ${form.categoryIds.includes(category.id) ? "border-brand-red bg-brand-red text-white" : "border-gray-300 text-brand-text"}`}>{category.name}</button>) : <p className="text-sm text-gray-500">Chưa tải được danh mục. Hãy kiểm tra kết nối backend.</p>}</div>
             </div>
             <div className="mt-7 flex justify-end gap-3 border-t pt-5">
               <button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-5 py-3 font-bold hover:bg-gray-100">Hủy</button>

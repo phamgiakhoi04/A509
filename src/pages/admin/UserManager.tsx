@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck, ShieldOff } from "lucide-react";
 import { adminApi } from "@/api/adminApi";
 import type { User } from "@/types/models";
+import { apiError } from "@/utils/apiError";
 
 export default function UserManager() {
   const [users, setUsers] = useState<User[]>([]);
@@ -11,7 +12,7 @@ export default function UserManager() {
   const load = async () => {
     setLoading(true);
     try { setUsers(await adminApi.getAllUsers()); }
-    catch (err: any) { setError(err.response?.data?.message || "Không thể tải người dùng."); }
+    catch (err: any) { setError(apiError(err, "Không thể tải người dùng.")); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
@@ -19,7 +20,7 @@ export default function UserManager() {
   const toggle = async (user: User) => {
     if (!window.confirm(`${user.status ? "Khóa" : "Mở khóa"} tài khoản ${user.username}?`)) return;
     try { await adminApi.setUserStatus(user.id, !user.status); await load(); }
-    catch (err: any) { setError(err.response?.data?.message || "Không thể cập nhật trạng thái."); }
+    catch (err: any) { setError(apiError(err, "Không thể cập nhật trạng thái.")); }
   };
 
   return <div className="admin-page space-y-6 p-8 font-body">

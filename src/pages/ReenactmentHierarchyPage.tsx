@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { adminApi } from "@/api/adminApi";
-import SensitiveImage from "@/components/SensitiveImage";
+import { publicContentApi } from "@/api/publicContentApi";
+import FlexGallery from "@/components/FlexGallery";
 import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,21 +20,19 @@ export default function ReenactmentHierarchyPage() {
   const [uniforms, setUniforms] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
   const [periods, setPeriods] = useState<any[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     const loadHierarchy = async () => {
-      const [countryResult, categoryResult, uniformResult] = await Promise.allSettled([
-        adminApi.getAllCountries(),
-        adminApi.getRootCategoriesByType("REENACTMENT"),
-        periodSlug ? adminApi.getAllUniforms() : Promise.resolve([]),
+      setLoading(true); setError("");
+      try {
+      const [countryData, categoryData] = await Promise.all([
+        publicContentApi.getCountries(), publicContentApi.getReenactmentRoots(),
       ]);
 
       if (!active) return;
-      const countryData = countryResult.status === "fulfilled" ? countryResult.value : [];
-      const categoryData = categoryResult.status === "fulfilled" ? categoryResult.value : [];
-      const uniformData = uniformResult.status === "fulfilled" ? uniformResult.value : [];
-
       setCountries(countryData || []);
       const root = (categoryData || []).find((item: any) => slugify(item.categoryName || "") === "phuc-dung-trang-phuc") || (categoryData || [])[0];
       const selectedCountry = (countryData || []).find((item: any) => slugify(item.countryName || "") === countrySlug);
@@ -53,8 +51,14 @@ export default function ReenactmentHierarchyPage() {
         slug: item.slug || slugify(item.categoryName || ""),
         label: item.categoryName,
         id: item.id,
+        description: item.description,
       })));
-      setUniforms((uniformData || []).filter((item: any) => item.category?.categoryType === "REENACTMENT"));
+      const selectedPeriod = selectedUnit?.children?.find((item: any) => (item.slug || slugify(item.categoryName || "")) === periodSlug);
+      const uniformData = selectedPeriod && selectedCountry && selectedUnit
+        ? await publicContentApi.getShowcase(selectedCountry.id, selectedUnit.id, selectedPeriod.id) : [];
+      if (active) setUniforms(uniformData);
+      } catch { if (active) setError("Không thể tải nội dung phục dựng. Vui lòng thử lại."); }
+      finally { if (active) setLoading(false); }
     };
 
     loadHierarchy();
@@ -62,6 +66,8 @@ export default function ReenactmentHierarchyPage() {
   }, [periodSlug, countrySlug, unitSlug, isAuthenticated]);
 
   const country = countries.find((item) => slugify(item.countryName || "") === countrySlug);
+
+  if (loading || error) return <ContentPageLayout><p className="py-16 text-center" role={error ? "alert" : "status"}>{error || "Đang tải nội dung..."}</p></ContentPageLayout>;
 
   if (periodSlug) {
     return <Detail period={periods.find((period) => period.slug === periodSlug)} country={country} uniforms={uniforms} unitSlug={unitSlug} />;
@@ -92,7 +98,7 @@ function Cards({ title, items }: { title: string; items: { to: string; label: st
   return (
     <ContentPageLayout>
       <main className="mx-auto w-full max-w-5xl">
-        <ContentPageTitle className="mb-6 border-[#ddd]">{title}</ContentPageTitle>
+        <ContentPageTitle>{title}</ContentPageTitle>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {items.map((item) => (
             <Link key={item.to} to={item.to} className="group bg-[#f1f1f1] p-4 text-center">
@@ -108,55 +114,34 @@ function Cards({ title, items }: { title: string; items: { to: string; label: st
   );
 }
 
-function Detail({ period, country, uniforms, unitSlug }: { period?: { id: number; slug: string; label: string }; country?: any; uniforms: any[]; unitSlug?: string }) {
-  const countryId = country?.id;
-  const records = countryId && period
-    ? uniforms.filter((item) => item.country?.id === countryId
-      && (Number(item.periodCategory?.id) === Number(period.id) || item.period === period.slug)
-      && (!unitSlug || slugify(item.category?.categoryName || "") === unitSlug))
-    : [];
+function Detail({ period, uniforms }: { period?: { id: number; slug: string; label: string; description?: string }; country?: any; uniforms: any[]; unitSlug?: string }) {
+  const records = uniforms;
 
   return (
     <ContentPageLayout>
       <main className="mx-auto w-full max-w-5xl">
+        {period && <header className="mb-8"><ContentPageTitle>{period.label}</ContentPageTitle>
+          {period.description && <p className="whitespace-pre-line text-[17px] leading-7 text-[#444]">{period.description}</p>}
+        </header>}
         {period && (records.length ? (
           <div className="space-y-12">
             {records.map((item: any) => {
               const images = (item.images || []).filter((image: any) => image.imageUrl || image.sensitive);
-              const galleryColumns = images.length === 1
-                ? "grid-cols-1"
-                : images.length === 2
-                  ? "grid-cols-1 md:grid-cols-2"
-                  : "grid-cols-1 md:grid-cols-3";
 
               return (
-                <article key={item.id}>
-                  <h1 className="mb-5 font-display text-3xl font-black leading-tight text-black md:text-4xl">{item.name}</h1>
+                <details key={item.id} open className="group">
+                  <summary className="mb-5 cursor-pointer border-l-4 border-brand-red bg-[#f1f1f1] px-3 py-3 font-sans text-xl font-bold text-[#b51f24]">{item.name}</summary>
                   {item.description && <p className="mb-7 whitespace-pre-line text-[17px] leading-7 text-[#444]">{item.description}</p>}
-                  <h2 className="mb-4 border-l-4 border-brand-red bg-[#f1f1f1] px-3 py-2 font-sans text-[20px] font-bold text-[#b51f24]">▼ {period.label}</h2>
                   {item.history && <p className="mb-7 whitespace-pre-line text-[17px] leading-7 text-[#444]">{item.history}</p>}
                   {images.length ? (
-                    <div className={`grid ${galleryColumns} gap-5`}>
-                      {images.map((image: any) => (
-                        <figure key={image.id}>
-                          <SensitiveImage
-                            src={image.imageUrl || undefined}
-                            sensitive={Boolean(image.sensitive)}
-                            alt={image.description || item.name}
-                            className={`w-full object-contain ${images.length === 1 ? "max-h-[760px]" : "aspect-[3/4]"}`}
-                          />
-                          <figcaption className="bg-[#f1f1f1] p-2 text-center text-sm italic">{image.description || item.name}</figcaption>
-                        </figure>
-                      ))}
-                    </div>
+                    <FlexGallery images={images} title={item.name} />
                   ) : <p className="py-8 text-center text-[#777]">Nội dung này chưa có ảnh.</p>}
-                </article>
+                </details>
               );
             })}
           </div>
         ) : (
           <div>
-            <h1 className="mb-5 font-display text-3xl font-black leading-tight">Trang phục {country?.countryName || "phục dựng"} trong giai đoạn {period.label}</h1>
             <p className="py-16 text-center text-[#777]">Chưa có nội dung phục dựng trong cơ sở dữ liệu.</p>
           </div>
         )) || <p className="py-16 text-center text-[#777]">Giai đoạn không tồn tại.</p>}

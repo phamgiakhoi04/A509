@@ -1,3 +1,4 @@
+import { apiError } from "@/utils/apiError";
 // src/pages/admin/edit/EditReenactment.tsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -41,7 +42,7 @@ export default function EditReenactment() {
 
         setExistingFlagUrl(countryData.flagImageUrl || null);
       } catch (error: any) {
-        alert(error.response?.data?.message || "Không thể tải thông tin quốc gia");
+        alert(apiError(error, "Không thể tải thông tin quốc gia"));
         navigate("/admin/phuc-dung");
       } finally {
         setLoading(false);
@@ -110,7 +111,7 @@ export default function EditReenactment() {
       setShowSuccessToast(true);
       setTimeout(() => navigate("/admin/phuc-dung"), 1500);
     } catch (error: any) {
-      alert(error.response?.data?.message || "Lỗi khi cập nhật quốc gia");
+      alert(apiError(error, "Lỗi khi cập nhật quốc gia"));
     } finally {
       setSaving(false);
     }

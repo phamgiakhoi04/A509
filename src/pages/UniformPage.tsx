@@ -6,6 +6,7 @@ import SensitiveImage from "@/components/SensitiveImage";
 import { useAuth } from "@/contexts/AuthContext";
 import ContentPageLayout, { ContentPageTitle } from "@/components/layout/ContentPageLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ContentPageHeading from "@/components/layout/ContentPageHeading";
 
 export default function UniformPage() {
   const { isAuthenticated } = useAuth();
@@ -23,8 +24,8 @@ export default function UniformPage() {
 
   return (
     <ContentPageLayout sidebar={<LegacySidebar />}>
-          <div className="mb-7 bg-[#f1f1f1] px-3 py-2 text-[16px]">{language === "en" ? "Resources / Uniforms" : "Tài liệu / Quân trang"}</div>
-          <ContentPageTitle>{language === "en" ? "Uniforms" : "Quân trang"}</ContentPageTitle>
+          <ContentPageHeading title={language === "en" ? "Uniforms" : "Quân trang"}
+            trail={language === "en" ? "Resources / Uniforms" : "Tài liệu / Quân trang"} />
           <div className="mb-6 flex border border-[#ccc]">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={language === "en" ? "Search..." : "Tra cứu..."} className="min-w-0 flex-1 px-3 py-2 italic outline-none" />
             <button type="button" aria-label={language === "en" ? "Search" : "Tra cứu"} className="bg-[#1674c8] px-5 text-xl text-white">›</button>

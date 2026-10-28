@@ -1,3 +1,5 @@
+import { apiError } from "@/utils/apiError";
+import ImageDisplayModeSelect, { type ImageDisplayMode } from "@/components/ImageDisplayModeSelect";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
@@ -33,12 +35,13 @@ export default function EditUniform({
     periodCategoryId: "",
   });
 
-  const [existingImages, setExistingImages] = useState<{ id: number; imageUrl: string; description?: string; sensitive?: boolean }[]>([]);
+  const [existingImages, setExistingImages] = useState<{ id: number; imageUrl: string; description?: string; sensitive?: boolean; displayMode?: ImageDisplayMode }[]>([]);
   const [savingImageId, setSavingImageId] = useState<number | null>(null);
   const [newSelectedImages, setNewSelectedImages] = useState<File[]>([]);
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
   const [newImageDescriptions, setNewImageDescriptions] = useState<string[]>([]);
   const [newImageSensitive, setNewImageSensitive] = useState<boolean[]>([]);
+  const [newImageDisplayModes, setNewImageDisplayModes] = useState<ImageDisplayMode[]>([]);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -81,10 +84,10 @@ export default function EditUniform({
           periodCategoryId: selectedPeriodId ? String(selectedPeriodId) : "",
         });
 
-        setExistingImages(uniformData.images?.map((img: any) => ({ id: img.id, imageUrl: img.imageUrl, description: img.description || "", sensitive: Boolean(img.sensitive) })) || []);
+        setExistingImages(uniformData.images?.map((img: any) => ({ id: img.id, imageUrl: img.imageUrl, description: img.description || "", sensitive: Boolean(img.sensitive), displayMode: img.displayMode || "GRID" })) || []);
       } catch (error: any) {
         console.error("Lỗi tải dữ liệu:", error);
-        alert(error.response?.data?.message || "Không thể tải thông tin quân trang");
+        alert(apiError(error, "Không thể tải thông tin quân trang"));
         navigate(redirectPath);
       } finally {
         setLoading(false);
@@ -130,6 +133,7 @@ export default function EditUniform({
     ]);
     setNewImageDescriptions((prev) => [...prev, ...files.map(() => "")]);
     setNewImageSensitive((prev) => [...prev, ...files.map(() => false)]);
+    setNewImageDisplayModes((prev) => [...prev, ...files.map(() => "GRID" as const)]);
   };
 
   const removeNewPreview = (index: number) => {
@@ -140,6 +144,7 @@ export default function EditUniform({
     });
     setNewImageDescriptions((prev) => prev.filter((_, i) => i !== index));
     setNewImageSensitive((prev) => prev.filter((_, i) => i !== index));
+    setNewImageDisplayModes((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = async (image: { id: number; imageUrl: string; description?: string }) => {
@@ -148,19 +153,19 @@ export default function EditUniform({
       await adminApi.deleteImage(image.id);
       setExistingImages((current) => current.filter((item) => item.id !== image.id));
     } catch (error: any) {
-      alert(error.response?.data || "Không thể xóa ảnh.");
+      alert(apiError(error, "Không thể xóa ảnh."));
     }
   };
 
-  const saveExistingDescription = async (image: { id: number; description?: string; sensitive?: boolean }) => {
+  const saveExistingDescription = async (image: { id: number; description?: string; sensitive?: boolean; displayMode?: ImageDisplayMode }) => {
     setSavingImageId(image.id);
     try {
-      const updated = await adminApi.updateImageDescription(image.id, { description: image.description || "", sensitive: Boolean(image.sensitive) });
+      const updated = await adminApi.updateImageDescription(image.id, { description: image.description || "", sensitive: Boolean(image.sensitive), displayMode: image.displayMode || "GRID" });
       setExistingImages((current) => current.map((item) => item.id === image.id
-        ? { ...item, description: updated.description || "", sensitive: Boolean(updated.sensitive) }
+        ? { ...item, description: updated.description || "", sensitive: Boolean(updated.sensitive), displayMode: updated.displayMode || "GRID" }
         : item));
     } catch (error: any) {
-      alert(error.response?.data || "Không thể lưu chú thích ảnh.");
+      alert(apiError(error, "Không thể lưu chú thích ảnh."));
     } finally {
       setSavingImageId(null);
     }
@@ -221,6 +226,7 @@ export default function EditUniform({
       newImageDescriptions.forEach((description) => {
         formDataToSend.append("imageDescriptions", description);
       });
+      newImageDisplayModes.forEach((mode) => formDataToSend.append("imageDisplayModes", mode));
       newImageSensitive.forEach((sensitive) => {
         formDataToSend.append("imageSensitive", String(sensitive));
       });
@@ -230,7 +236,7 @@ export default function EditUniform({
       setShowSuccessToast(true);
     } catch (error: any) {
       console.error("Lỗi cập nhật:", error);
-      alert(error.response?.data?.message || "Lỗi khi cập nhật quân trang");
+      alert(apiError(error, "Lỗi khi cập nhật quân trang"));
       setSaving(false);
     }
   };
@@ -360,6 +366,7 @@ export default function EditUniform({
                         />
                         Ảnh nhạy cảm / cần đăng nhập
                       </label>
+                      {categoryType === "REENACTMENT" && <ImageDisplayModeSelect value={image.displayMode} onChange={(mode) => setExistingImages((current) => current.map((item) => item.id === image.id ? { ...item, displayMode: mode } : item))} />}
                       <button
                         type="button"
                         onClick={() => saveExistingDescription(image)}
@@ -420,6 +427,7 @@ export default function EditUniform({
                         />
                         Ảnh nhạy cảm / cần đăng nhập
                       </label>
+                      {categoryType === "REENACTMENT" && <ImageDisplayModeSelect value={newImageDisplayModes[idx]} onChange={(mode) => setNewImageDisplayModes((current) => current.map((value, i) => i === idx ? mode : value))} />}
                     </div>
                   ))}
                 </div>

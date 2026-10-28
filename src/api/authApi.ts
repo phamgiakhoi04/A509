@@ -41,10 +41,7 @@ export const authApi = {
       formData.append("avatarFile", data.avatarFile);
     }
 
-    // The backend exposes an avatar-only endpoint. Keeping this call aligned
-    // with it avoids posting to the old /users/profile route (which no longer
-    // exists) and also prevents sending fields the profile screen does not edit.
-    const res = await axiosClient.post<User>("/api/users/profile/avatar", formData);
+    const res = await axiosClient.post<User>("/api/users/profile", formData);
     return res.data;
   },
 

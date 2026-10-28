@@ -95,7 +95,7 @@ export const adminApi = {
     await axiosClient.delete(`/api/images/${id}`);
   },
 
-  updateImageDescription: async (id: number, patch: { description?: string; sensitive?: boolean } | string) => {
+  updateImageDescription: async (id: number, patch: { description?: string; sensitive?: boolean; displayMode?: "GRID" | "FULL" } | string) => {
     const payload = typeof patch === "string" ? { description: patch } : patch;
     const { data } = await axiosClient.patch(`/api/images/${id}`, payload);
     return data;

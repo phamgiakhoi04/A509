@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { authApi } from "@/api/authApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProtectedRoute() {
-  const user = authApi.getCurrentUser();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <p role="status" className="p-8 text-center">Đang kiểm tra phiên đăng nhập...</p>;
 
   const hasAdminRoleInArray = user?.roles?.some((r: { name: string }) => 
     r.name === "ADMIN" || r.name === "ROLE_ADMIN"
@@ -12,7 +13,7 @@ export default function ProtectedRoute() {
 
   const isAdmin = user && (hasAdminRoleInArray || hasAdminRoleName);
 
-  if (!user) {
+  if (!user || !isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

@@ -30,7 +30,7 @@ export function ContentPageTitle({
 }: PropsWithChildren<{ className?: string }>) {
   return (
     <h1
-      className={`mb-5 border-b-2 border-brand-red pb-3 font-display text-2xl font-black uppercase text-brand-redDark sm:text-3xl ${className}`}
+      className={`mb-5 border-b-2 border-brand-red pb-3 font-display text-[28px] font-black uppercase leading-tight text-[#9a1b1e] sm:text-[32px] ${className}`}
     >
       {children}
     </h1>

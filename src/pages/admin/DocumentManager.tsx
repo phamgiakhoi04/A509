@@ -5,5 +5,5 @@ import NewsManager from "./NewsManager";
  * ngay. Giữ component riêng để sau này tách sang document API không ảnh hưởng route.
  */
 export default function DocumentManager() {
-  return <NewsManager title="Quản lý tài liệu" itemLabel="tài liệu" />;
+  return <NewsManager title="Quản lý tài liệu" itemLabel="tài liệu" scope="documents" />;
 }

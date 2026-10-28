@@ -1,3 +1,5 @@
+import { apiError } from "@/utils/apiError";
+import ImageDisplayModeSelect, { type ImageDisplayMode } from "@/components/ImageDisplayModeSelect";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
@@ -36,6 +38,7 @@ export default function UniformManager({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
   const [imageSensitive, setImageSensitive] = useState<boolean[]>([]);
+  const [imageDisplayModes, setImageDisplayModes] = useState<ImageDisplayMode[]>([]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -153,6 +156,7 @@ export default function UniformManager({
     ]);
     setImageDescriptions((prev) => [...prev, ...files.map(() => "")]);
     setImageSensitive((prev) => [...prev, ...files.map(() => false)]);
+    setImageDisplayModes((prev) => [...prev, ...files.map(() => "GRID" as const)]);
   };
 
   const removePreview = (index: number) => {
@@ -163,6 +167,7 @@ export default function UniformManager({
     });
     setImageDescriptions((prev) => prev.filter((_, i) => i !== index));
     setImageSensitive((prev) => prev.filter((_, i) => i !== index));
+    setImageDisplayModes((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -213,6 +218,7 @@ export default function UniformManager({
       imageDescriptions.forEach((description) => {
         formDataToSend.append("imageDescriptions", description);
       });
+      imageDisplayModes.forEach((mode) => formDataToSend.append("imageDisplayModes", mode));
       imageSensitive.forEach((sensitive) => {
         formDataToSend.append("imageSensitive", String(sensitive));
       });
@@ -232,6 +238,7 @@ export default function UniformManager({
       setPreviewUrls([]);
       setImageDescriptions([]);
       setImageSensitive([]);
+      setImageDisplayModes([]);
 
       setToastMessage(`Đã thêm ${itemLabel} thành công!`);
       setShowSuccessToast(true);
@@ -275,7 +282,12 @@ export default function UniformManager({
           onClick={() => {
             if (!countries.length) return alert("Hãy hoàn tất bước 1: tạo ít nhất một quốc gia trước.");
             if (!visibleCategories.length) return alert("Quốc gia này chưa có lực lượng phục dựng.");
-            if (isReenactment && !visiblePeriods.length) return alert("Lực lượng này chưa có giai đoạn. Hãy tạo giai đoạn trước.");
+            if (isReenactment) {
+              const availableForce = visibleCategories.find((category) => String(category.id) === String(formData.categoryId) && category.children?.length)
+                || visibleCategories.find((category) => category.children?.length);
+              if (!availableForce) return alert("Quốc gia này chưa có lực lượng có giai đoạn. Hãy tạo giai đoạn trước.");
+              setFormData((current) => ({ ...current, categoryId: String(availableForce.id), periodCategoryId: String(availableForce.children[0].id) }));
+            }
             setShowForm(true);
           }}
           className="shrink-0 bg-brand-red text-white px-5 py-3 rounded-xl font-bold shadow-pop hover:bg-brand-redDark hover:shadow-pop-hover transition-all flex items-center gap-2 whitespace-nowrap"
@@ -413,6 +425,7 @@ export default function UniformManager({
                               />
                               Ảnh nhạy cảm / cần đăng nhập
                             </label>
+                            {isReenactment && <ImageDisplayModeSelect value={imageDisplayModes[idx]} onChange={(mode) => setImageDisplayModes((current) => current.map((value, i) => i === idx ? mode : value))} />}
                           </div>
                         ))}
                       </div>

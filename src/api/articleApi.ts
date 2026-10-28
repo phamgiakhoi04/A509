@@ -42,7 +42,7 @@ export const articleApi = {
     const { data } = await axiosClient.patch(`/api/articles/images/${imageId}`, payload);
     return data;
   },
-  getCategories: async (): Promise<{ id: number; name: string; slug: string }[]> => {
+  getCategories: async (): Promise<import("@/utils/contentSections").ContentCategory[]> => {
     const { data } = await axiosClient.get("/api/categories");
     const rows = Array.isArray(data) ? data : data?.content;
     if (!Array.isArray(rows)) return [];
@@ -51,6 +51,7 @@ export const articleApi = {
         id: Number(row.id ?? row.categoryId),
         name: String(row.name ?? row.categoryName ?? "").trim(),
         slug: String(row.slug ?? "").trim(),
+        parentId: row.parentId == null ? null : Number(row.parentId),
       }))
       .filter((row) => Number.isFinite(row.id) && row.name);
   },

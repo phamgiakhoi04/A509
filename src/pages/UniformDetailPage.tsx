@@ -5,6 +5,7 @@ import { articleApi } from "@/api/articleApi";
 import { Loader2, Calendar, MapPin } from "lucide-react";
 import CommentSection from "@/components/CommentSection";
 import SensitiveImage from "@/components/SensitiveImage";
+import ContentPageHeading from "@/components/layout/ContentPageHeading";
 import { useAuth } from "@/contexts/AuthContext";
 import ContentPageLayout from "@/components/layout/ContentPageLayout";
 
@@ -70,9 +71,7 @@ export default function UniformDetailPage() {
     <ContentPageLayout className="min-h-[55vh]">
       <section className="border-b border-[#ddd] pb-6">
         <div className="mx-auto w-full max-w-5xl">
-          <h1 className="font-display text-3xl font-black text-brand-redDark md:text-4xl">
-            {item.name}
-          </h1>
+          <ContentPageHeading title={item.name} trail="Tài liệu / Quân trang" />
           {item.country?.countryName && (
             <div className="mt-4 inline-block border-l-4 border-brand-red bg-[#f1f1f1] px-3 py-2 text-sm font-bold uppercase tracking-wide text-brand-redDark">
               {item.country.countryName}

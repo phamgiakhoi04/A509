@@ -101,6 +101,7 @@ export default function App() {
           <Route path="tin-tuc" element={<NewsManager />} />
           <Route path="tin-tuc/edit/:id" element={<EditArticle />} />
           <Route path="tai-lieu" element={<DocumentManager />} />
+          <Route path="tai-lieu/edit/:id" element={<EditArticle section="documents" />} />
           <Route path="users" element={<UserManager />} />
           <Route path="quan-trang/edit/:id" element={<EditUniform />} />
           <Route path="phuc-dung/noi-dung/edit/:id" element={<EditUniform categoryType="REENACTMENT" redirectPath="/admin/phuc-dung" />} />
