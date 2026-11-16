@@ -425,21 +425,23 @@ export default function Header() {
         <div className="px-3 md:hidden">
           <button
             type="button"
+            aria-label={
+              language === "en"
+                ? isMenuOpen ? "Close menu" : "Open menu"
+                : isMenuOpen ? "Đóng menu" : "Mở menu"
+            }
+            aria-expanded={isMenuOpen}
             className="
               flex
               h-[48px]
               w-full
               items-center
-              justify-between
+              justify-end
               text-white
             "
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <span className="text-sm font-bold tracking-wide">
-              MENU
-            </span>
-
-            <span className="text-xl leading-none">
+            <span aria-hidden="true" className="text-xl leading-none">
               {isMenuOpen ? "✕" : "☰"}
             </span>
           </button>
