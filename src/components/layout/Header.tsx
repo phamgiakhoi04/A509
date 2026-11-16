@@ -216,7 +216,7 @@ export default function Header() {
           BANNER HEADER
           ================================================= */}
 
-      <div className="relative aspect-[5.3/1] w-full overflow-hidden bg-[#333]">
+      <div className="relative aspect-[3/1] max-h-36 w-full overflow-hidden bg-[#333] md:aspect-[5.3/1] md:max-h-none">
         {/* Ảnh nền */}
         <img
           src={`${import.meta.env.BASE_URL}images/A509 Header.jpg`}
@@ -239,10 +239,16 @@ export default function Header() {
           to="/"
           className="
             absolute
-            left-6
+            inset-x-0
             top-1/2
             z-10
+            mx-auto
+            max-w-md
             -translate-y-1/2
+            md:left-6
+            md:right-auto
+            md:mx-0
+            md:max-w-none
           "
         >
           <img
@@ -250,7 +256,7 @@ export default function Header() {
             alt="A509 Research & Reenactment Group"
             className="
               h-auto
-              w-[360px]
+              w-full
               object-contain
               transition-transform
               duration-200
