@@ -8,6 +8,7 @@ import { articleApi } from "@/api/articleApi";
 import { Loader2, Calendar, MapPin } from "lucide-react";
 import CommentSection from "@/components/CommentSection";
 import SensitiveImage from "@/components/SensitiveImage";
+import RichTextContent from "@/components/editor/RichTextContent";
 import ContentPageHeading from "@/components/layout/ContentPageHeading";
 import { useAuth } from "@/contexts/AuthContext";
 import ContentPageLayout from "@/components/layout/ContentPageLayout";
@@ -154,7 +155,7 @@ export default function UniformDetailPage() {
             </div>
           </div>
 
-          <div className="order-1 space-y-6 lg:order-2">
+          <div className="order-1 min-w-0 space-y-6 lg:order-2">
             <div className="border-b border-[#ddd] pb-5">
               <h2 className="mb-4 border-b border-[#ddd] pb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">
                 {uiText("THÔNG TIN CHI TIẾT")}{" "}
@@ -216,9 +217,10 @@ export default function UniformDetailPage() {
                 <h2 className="mb-3 font-display text-xl font-black text-brand-redDark md:text-2xl">
                   {uiText("LỊCH SỬ SỬ DỤNG")}
                 </h2>
-                <p className="whitespace-pre-wrap text-base leading-7 text-brand-text/90">
-                  {item.history}
-                </p>
+                <RichTextContent
+                  value={item.history}
+                  className="text-base leading-7 text-brand-text/90"
+                />
               </div>
             )}
           </div>

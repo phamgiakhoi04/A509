@@ -7,6 +7,8 @@ import { adminApi } from "@/api/adminApi";
 import SensitiveImage from "@/components/SensitiveImage";
 import type { ArticleDTO } from "@/types/models";
 import { apiError } from "@/utils/apiError";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const slugify = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 type ImageItem = { id: number; imageUrl: string | null; description?: string; sensitive?: boolean; referenceUniformId?: number | null; referenceUniformName?: string; referenceAuto?: boolean };
@@ -94,6 +96,10 @@ export default function EditArticle({ section: fixedSection }: { section?: "docu
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!article) return;
+    if (!article.content?.trim()) {
+      setError("Nội dung bài viết là bắt buộc.");
+      return;
+    }
     if (articleSection(article, categories) !== editorSection) { setError("Hãy chọn lại danh mục thuộc đúng nhóm nội dung trước khi lưu."); return; }
     setSaving(true); setError("");
     try {
@@ -121,10 +127,24 @@ export default function EditArticle({ section: fixedSection }: { section?: "docu
     catch (error) { setError(getErrorMessage(error, "Không thể lưu chú thích ảnh.")); }
   };
 
-  if (!article) return <div className="admin-page p-8 text-brand-red">{error || "Đang tải dữ liệu..."}</div>;
-  return <div className="admin-page relative mx-auto max-w-5xl bg-white p-8 font-body">
-    <button type="button" onClick={() => navigate(backPath)} className="mb-6 flex items-center gap-2 font-medium text-brand-text transition-colors hover:text-brand-red">← Quay lại danh sách</button>
-    <h1 className="mb-6 border-b-4 border-brand-red pb-3 font-sans text-3xl font-bold uppercase text-brand-redDark">CHỈNH SỬA BÀI VIẾT</h1>
+  const pageClass = "admin-page relative mx-auto max-w-5xl space-y-6 bg-white p-4 font-body sm:p-6 md:p-8";
+  const header = (
+    <AdminPageHeader
+      title={editorSection === "documents" ? "Chỉnh sửa tài liệu" : "Chỉnh sửa bài viết"}
+      backTo={backPath}
+    />
+  );
+
+  if (!article) {
+    return <div className={pageClass}>
+      {header}
+      <p role={error ? "alert" : "status"} className={error ? "text-brand-red" : "text-gray-600"}>
+        {error || "Đang tải dữ liệu..."}
+      </p>
+    </div>;
+  }
+  return <div className={pageClass}>
+    {header}
     {error && <div className="mb-5 border-l-4 border-brand-red bg-red-50 p-3 font-bold text-brand-redDark">{error}</div>}
     <label className="mb-5 block text-sm font-bold">Nhóm nội dung<select aria-label="Nhóm nội dung bài viết" value={editorSection} onChange={(event) => { const section = event.target.value as ContentSection; setEditorSection(section); update({ categoryIds: defaultCategoryIds(section, categories) }); }} className="mt-2 block w-full border border-[#bbb] bg-white p-3">{(fixedSection ? [fixedSection] : ["news", "documents", "explore", "culture", "activities"] as ContentSection[]).map((section) => <option key={section} value={section}>{sectionLabels[section]}</option>)}</select></label>
     {articleSection(article, categories) !== editorSection && <p role="alert" className="mb-4 bg-amber-50 p-3 text-sm text-amber-900">Nội dung chưa thuộc một nhóm duy nhất. <button type="button" className="font-bold underline" onClick={() => update({ categoryIds: defaultCategoryIds(editorSection, categories) })}>Chọn lại danh mục cho nhóm này</button></p>}
@@ -135,7 +155,14 @@ export default function EditArticle({ section: fixedSection }: { section?: "docu
         <input className="input-style w-full" value={article.thumbnailUrl || ""} onChange={(e) => update({ thumbnailUrl: e.target.value })} placeholder="URL ảnh đại diện" />
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(article.thumbnailSensitive)} onChange={(e) => update({ thumbnailSensitive: e.target.checked })} />Yêu cầu đăng nhập để xem ảnh đại diện</label>
         <textarea className="input-style w-full" rows={3} value={article.excerpt || ""} onChange={(e) => update({ excerpt: e.target.value })} placeholder="Tóm tắt bài viết" />
-        <textarea required className="input-style w-full" rows={15} value={article.content || ""} onChange={(e) => update({ content: e.target.value })} placeholder="Nội dung bài viết" />
+        <RichTextEditor
+          key={article.id}
+          label="Nội dung bài viết"
+          value={article.content || ""}
+          onChange={(content) => update({ content })}
+          disabled={saving}
+          required
+        />
       </section>
       <section><h2 className="mb-3 border-b border-[#ddd] pb-2 text-lg font-bold text-brand-redDark">Danh mục</h2><div className="flex flex-wrap gap-2">{categoriesForSection(editorSection, categories).length ? categoriesForSection(editorSection, categories).map((category) => <button type="button" key={category.id} onClick={() => toggleCategory(category.id)} className={`rounded-full border px-3 py-1 text-sm transition-colors ${article.categoryIds?.includes(category.id) ? "border-brand-red bg-brand-red text-white" : "border-gray-300 text-brand-text hover:border-brand-red hover:text-brand-red"}`}>{category.name}</button>) : <p className="text-sm text-gray-500">Chưa tải được danh mục. Hãy kiểm tra kết nối backend.</p>}</div></section>
       <section>

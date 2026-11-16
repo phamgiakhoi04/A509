@@ -23,11 +23,11 @@ export default function AdminSidebar({
 
   const adminMenuItems = [
     { path: "/admin/dashboard", label: "Tổng quan", icon: LayoutDashboard },
-    { path: "/admin/phuc-dung", label: "Quản lý Phục Dựng", icon: LayoutList },
-    { path: "/admin/quan-trang", label: "Quản lý Quân trang", icon: Shirt },
-    { path: "/admin/tai-lieu", label: "Quản lý Tài liệu", icon: FileText },
-    { path: "/admin/tin-tuc", label: "Quản lý Tin tức", icon: Newspaper },
-    { path: "/admin/users", label: "Quản lý Người dùng", icon: Users },
+    { path: "/admin/phuc-dung", label: "Quản lý phục dựng", icon: LayoutList },
+    { path: "/admin/quan-trang", label: "Quản lý quân trang", icon: Shirt },
+    { path: "/admin/tai-lieu", label: "Quản lý tài liệu", icon: FileText },
+    { path: "/admin/tin-tuc", label: "Quản lý tin tức", icon: Newspaper },
+    { path: "/admin/users", label: "Quản lý người dùng", icon: Users },
     { path: "/admin/ban-dich", label: "Bản dịch tiếng Anh", icon: FileText },
   ];
 

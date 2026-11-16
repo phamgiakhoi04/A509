@@ -12,6 +12,7 @@ import type { Article, ActivityLog } from "@/types/models";
 import { formatDateTime } from "@/utils/format";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getLocalizedArticleText } from "@/utils/articleTranslation";
+import { richTextPlainText } from "@/utils/richText";
 
 export default function TrangChu() {
   const { language: uiLanguage } = useUILanguage();
@@ -100,9 +101,9 @@ export default function TrangChu() {
     }
 
     return featuredArticles.filter((article) =>
-      `${article.title} ${article.excerpt || ""} ${article.content || ""} ${
+      `${article.title} ${article.excerpt || ""} ${richTextPlainText(article.content || "")} ${
         article.titleEn || ""
-      } ${article.excerptEn || ""} ${article.contentEn || ""}`
+      } ${article.excerptEn || ""} ${richTextPlainText(article.contentEn || "")}`
         .toLowerCase()
         .includes(query),
     );
@@ -116,9 +117,9 @@ export default function TrangChu() {
     }
 
     return restorationArticles.filter((article) =>
-      `${article.title} ${article.excerpt || ""} ${article.content || ""} ${
+      `${article.title} ${article.excerpt || ""} ${richTextPlainText(article.content || "")} ${
         article.titleEn || ""
-      } ${article.excerptEn || ""} ${article.contentEn || ""}`
+      } ${article.excerptEn || ""} ${richTextPlainText(article.contentEn || "")}`
         .toLowerCase()
         .includes(query),
     );

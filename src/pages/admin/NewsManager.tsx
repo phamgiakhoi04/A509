@@ -13,6 +13,8 @@ import { Edit, Loader2, Plus, Trash2, X } from "lucide-react";
 import { articleApi } from "@/api/articleApi";
 import type { ArticleDTO } from "@/types/models";
 import { apiError } from "@/utils/apiError";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 type Category = ContentCategory;
 
@@ -186,7 +188,6 @@ export default function NewsManager({
       title: form.title.trim(),
       slug: form.slug.trim(),
       excerpt: form.excerpt.trim(),
-      content: form.content.trim(),
       thumbnailUrl: form.thumbnailUrl.trim() || undefined,
       publishedAt: normalizeDateTime(form.publishedAt),
     };
@@ -245,21 +246,19 @@ export default function NewsManager({
   };
 
   return (
-    <div className="admin-page relative space-y-6 p-8 font-body">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-4xl font-black uppercase text-brand-redDark">
-          {title}
-        </h1>
-        <button
-          onClick={openCreate}
-          disabled={
-            activeSection === "mixed" || activeSection === "unclassified"
-          }
-          className="flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-pop hover:bg-brand-redDark"
-        >
-          <Plus size={20} /> Thêm {itemLabel}
-        </button>
-      </div>
+    <div className="admin-page relative space-y-6 p-4 font-body sm:p-6 md:p-8">
+      <AdminPageHeader
+        title={title}
+        actions={
+          <button
+            onClick={openCreate}
+            disabled={activeSection === "mixed" || activeSection === "unclassified"}
+            className="flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-pop hover:bg-brand-redDark"
+          >
+            <Plus size={20} /> Thêm {itemLabel}
+          </button>
+        }
+      />
 
       {scope === "news" && (
         <label className="block max-w-sm text-sm font-bold">
@@ -482,13 +481,15 @@ export default function NewsManager({
                 value={form.excerpt}
                 onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
               />
-              <textarea
-                className="input-style md:col-span-2"
-                rows={12}
-                placeholder="Nội dung *"
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-              />
+              <div className="min-w-0 md:col-span-2">
+                <RichTextEditor
+                  label="Nội dung bài viết"
+                  value={form.content}
+                  onChange={(content) => setForm((current) => ({ ...current, content }))}
+                  disabled={saving}
+                  required
+                />
+              </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-4">
               <label className="flex items-center gap-2 font-bold">

@@ -1,10 +1,12 @@
 import { apiError } from "@/utils/apiError";
 import ImageDisplayModeSelect, { type ImageDisplayMode } from "@/components/ImageDisplayModeSelect";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
 import Button from "@/components/ui/Button";
-import { UploadCloud, X, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { UploadCloud, X, Loader2, CheckCircle } from "lucide-react";
 import { Uniform, CountryOption } from "@/types/models";
 
 type EditUniformProps = {
@@ -241,10 +243,22 @@ export default function EditUniform({
     }
   };
 
+  const pageClass = "admin-page relative mx-auto max-w-5xl space-y-6 bg-white p-4 font-body sm:p-6 md:p-8";
+  const header = (
+    <AdminPageHeader
+      title={categoryType === "REENACTMENT" ? "Chỉnh sửa nội dung phục dựng" : "Chỉnh sửa quân trang"}
+      backTo={redirectPath}
+    />
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-brand-red" size={48} />
+      <div className={pageClass}>
+        {header}
+        <div role="status" className="flex min-h-[40vh] items-center justify-center">
+          <Loader2 aria-hidden="true" className="animate-spin text-brand-red" size={48} />
+          <span className="sr-only">Đang tải dữ liệu...</span>
+        </div>
       </div>
     );
   }
@@ -252,17 +266,8 @@ export default function EditUniform({
   if (!uniform) return null;
 
   return (
-    <div className="admin-page mx-auto max-w-5xl bg-white p-8 font-body relative">
-      <button
-        onClick={() => navigate(redirectPath)}
-        className="mb-8 flex items-center gap-2 text-brand-text hover:text-brand-red transition-colors font-medium"
-      >
-        <ArrowLeft size={20} /> Quay lại danh sách
-      </button>
-
-      <h1 className="mb-6 border-b-4 border-brand-red pb-3 font-sans text-3xl font-bold uppercase text-brand-redDark">
-          {categoryType === "REENACTMENT" ? "CHỈNH SỬA NỘI DUNG PHỤC DỰNG" : "CHỈNH SỬA QUÂN TRANG"}
-      </h1>
+    <div className={pageClass}>
+      {header}
 
       <form onSubmit={handleSubmit} className="admin-edit-form space-y-7 border border-[#ddd] bg-white p-7 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -306,12 +311,12 @@ export default function EditUniform({
             />
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-lg font-bold text-brand-text mb-3">{categoryType === "REENACTMENT" ? "Nội dung chi tiết" : "Lịch sử sử dụng"}</label>
-            <textarea
-              className="min-h-48 w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg focus:ring-4 focus:ring-brand-yellow outline-none resize-y transition-all"
+          <div className="min-w-0 md:col-span-2">
+            <RichTextEditor
+              label={categoryType === "REENACTMENT" ? "Nội dung chi tiết" : "Lịch sử sử dụng"}
               value={formData.history}
-              onChange={(e) => setFormData({ ...formData, history: e.target.value })}
+              onChange={(history) => setFormData((current) => ({ ...current, history }))}
+              disabled={saving}
             />
           </div>
 

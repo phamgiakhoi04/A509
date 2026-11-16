@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import axiosClient from "@/api/axiosClient";
 import { apiError } from "@/utils/apiError";
+import RichTextContent from "@/components/editor/RichTextContent";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 const types: Record<string, string> = {
   ARTICLE: "Bài viết",
   UNIFORM: "Quân trang / nội dung phục dựng",
@@ -28,6 +31,10 @@ type Detail = {
   fields: string[];
   stale: string[];
 };
+const longTranslationLimit = 200000;
+const isRichTextField = (type: string, field: string) =>
+  (type === "ARTICLE" && field === "content") || (type === "UNIFORM" && field === "history");
+
 export default function TranslationManager() {
   const [type, setType] = useState("ARTICLE");
   const [page, setPage] = useState(0);
@@ -91,9 +98,15 @@ export default function TranslationManager() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!detail || selected === null) return;
-    setSaving(true);
     setError("");
     setMessage("");
+    if (detail.fields.some((field) =>
+      isRichTextField(type, field) && (draft[field]?.length || 0) > longTranslationLimit,
+    )) {
+      setError("Nội dung bản dịch và định dạng vượt quá 200.000 ký tự.");
+      return;
+    }
+    setSaving(true);
     try {
       await axiosClient.put(`/api/admin/translations/${type}/${selected}`, {
         fields: Object.fromEntries(
@@ -115,18 +128,17 @@ export default function TranslationManager() {
     }
   }
   return (
-    <main className="admin-page space-y-6 p-5 md:p-8">
-      <header>
-        <h1 className="text-3xl font-bold text-brand-red">
-          Bản dịch tiếng Anh
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600">
-          Nhập bản dịch cho toàn bộ nội dung, kể cả lịch sử và chú thích ảnh.
-          Chưa kết nối dịch vụ dịch tự động. Trường chưa dịch hoặc bản dịch có
-          nội dung gốc đã thay đổi sẽ dùng tiếng Việt; website không tự tạo bản
-          dịch.
-        </p>
-      </header>
+    <div className="admin-page space-y-6 p-4 sm:p-6 md:p-8">
+      <AdminPageHeader
+        title="Bản dịch tiếng Anh"
+        description={
+          <>
+            Nhập bản dịch cho toàn bộ nội dung, kể cả lịch sử và chú thích ảnh.
+            {" "}Chưa kết nối dịch vụ dịch tự động. Trường chưa dịch hoặc bản dịch có
+            nội dung gốc đã thay đổi sẽ dùng tiếng Việt; website không tự tạo bản dịch.
+          </>
+        }
+      />
       <label className="block max-w-lg text-sm font-bold">
         Loại nội dung
         <select
@@ -220,40 +232,44 @@ export default function TranslationManager() {
                   tra và lưu lại bản dịch.
                 </p>
               )}
-              {detail.fields.map((field) => (
-                <div key={field} className="grid gap-3 lg:grid-cols-2">
-                  <div>
-                    <h3 className="mb-2 text-sm font-bold">
-                      {names[field] || field} · Tiếng Việt
-                    </h3>
-                    <p className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-3 text-sm leading-6 text-gray-600">
-                      {String(detail.source[field] || "(Trống)")}
-                    </p>
+              {detail.fields.map((field) => {
+                const label = names[field] || field;
+                const source = String(detail.source[field] || "(Trống)");
+                const sourceClassName = "max-h-72 overflow-auto rounded-lg bg-gray-50 p-3 text-sm leading-6 text-gray-600";
+                const richText = isRichTextField(type, field);
+                const update = (value: string) => setDraft((current) => ({ ...current, [field]: value }));
+                return (
+                  <div key={field} className="grid gap-3 lg:grid-cols-2">
+                    <div className="min-w-0">
+                      <h3 className="mb-2 text-sm font-bold">{label} · Tiếng Việt</h3>
+                      {richText
+                        ? <RichTextContent value={source} className={sourceClassName} />
+                        : <p className={`${sourceClassName} whitespace-pre-wrap break-words`}>{source}</p>}
+                    </div>
+                    {richText ? (
+                      <RichTextEditor
+                        key={`${type}:${selected}:${field}`}
+                        label={`${label} · English`}
+                        value={draft[field] || ""}
+                        onChange={update}
+                        disabled={saving}
+                      />
+                    ) : (
+                      <label className="block min-w-0 text-sm font-bold">
+                        {label} · English
+                        <textarea
+                          disabled={saving}
+                          className="mt-2 block w-full rounded-lg border p-3 font-normal leading-6"
+                          rows={4}
+                          maxLength={["title", "name", "countryName", "categoryName"].includes(field) ? 500 : longTranslationLimit}
+                          value={draft[field] || ""}
+                          onChange={(event) => update(event.target.value)}
+                        />
+                      </label>
+                    )}
                   </div>
-                  <label className="block text-sm font-bold">
-                    {names[field] || field} · English
-                    <textarea
-                      disabled={saving}
-                      className="mt-2 block w-full rounded-lg border p-3 font-normal leading-6"
-                      rows={field === "content" || field === "history" ? 10 : 4}
-                      maxLength={
-                        [
-                          "title",
-                          "name",
-                          "countryName",
-                          "categoryName",
-                        ].includes(field)
-                          ? 500
-                          : 200000
-                      }
-                      value={draft[field] || ""}
-                      onChange={(e) =>
-                        setDraft({ ...draft, [field]: e.target.value })
-                      }
-                    />
-                  </label>
-                </div>
-              ))}
+                );
+              })}
               <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-5">
                 <p className="text-xs text-gray-500">
                   Để trống trường tiếng Anh để dùng nội dung tiếng Việt.
@@ -269,6 +285,6 @@ export default function TranslationManager() {
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }

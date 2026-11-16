@@ -1,5 +1,7 @@
 import { apiError } from "@/utils/apiError";
 import ImageDisplayModeSelect, { type ImageDisplayMode } from "@/components/ImageDisplayModeSelect";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
@@ -15,7 +17,7 @@ type UniformManagerProps = {
 };
 export default function UniformManager({
   categoryType = "UNIFORM",
-  title = "Quản lý Quân trang",
+  title = "Quản lý quân trang",
   editPathPrefix = "/admin/quan-trang/edit",
   embedded = false,
   initialCountryId,
@@ -273,28 +275,29 @@ export default function UniformManager({
   };
 
   return (
-    <div className={embedded ? "space-y-6 font-body relative" : "admin-page space-y-8 p-8 font-body relative"}>
-      <div className="flex items-center justify-between gap-6">
-        <h1 className="whitespace-nowrap text-3xl font-display font-black text-brand-redDark uppercase tracking-wide">
-          {title}
-        </h1>
-        <Button
-          onClick={() => {
-            if (!countries.length) return alert("Hãy hoàn tất bước 1: tạo ít nhất một quốc gia trước.");
-            if (!visibleCategories.length) return alert("Quốc gia này chưa có lực lượng phục dựng.");
-            if (isReenactment) {
-              const availableForce = visibleCategories.find((category) => String(category.id) === String(formData.categoryId) && category.children?.length)
-                || visibleCategories.find((category) => category.children?.length);
-              if (!availableForce) return alert("Quốc gia này chưa có lực lượng có giai đoạn. Hãy tạo giai đoạn trước.");
-              setFormData((current) => ({ ...current, categoryId: String(availableForce.id), periodCategoryId: String(availableForce.children[0].id) }));
-            }
-            setShowForm(true);
-          }}
-          className="shrink-0 bg-brand-red text-white px-5 py-3 rounded-xl font-bold shadow-pop hover:bg-brand-redDark hover:shadow-pop-hover transition-all flex items-center gap-2 whitespace-nowrap"
-        >
-          <Plus size={22} /> {isReenactment ? "Thêm nội dung" : "Thêm mới"}
-        </Button>
-      </div>
+    <div className={embedded ? "relative space-y-6 font-body" : "admin-page relative space-y-6 p-4 font-body sm:p-6 md:p-8"}>
+      <AdminPageHeader
+        title={title}
+        level={embedded ? 2 : 1}
+        actions={
+          <Button
+            onClick={() => {
+              if (!countries.length) return alert("Hãy hoàn tất bước 1: tạo ít nhất một quốc gia trước.");
+              if (!visibleCategories.length) return alert("Quốc gia này chưa có lực lượng phục dựng.");
+              if (isReenactment) {
+                const availableForce = visibleCategories.find((category) => String(category.id) === String(formData.categoryId) && category.children?.length)
+                  || visibleCategories.find((category) => category.children?.length);
+                if (!availableForce) return alert("Quốc gia này chưa có lực lượng có giai đoạn. Hãy tạo giai đoạn trước.");
+                setFormData((current) => ({ ...current, categoryId: String(availableForce.id), periodCategoryId: String(availableForce.children[0].id) }));
+              }
+              setShowForm(true);
+            }}
+            className="flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 font-bold text-white shadow-pop hover:bg-brand-redDark hover:shadow-pop-hover"
+          >
+            <Plus size={22} /> {isReenactment ? "Thêm nội dung" : "Thêm mới"}
+          </Button>
+        }
+      />
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -332,13 +335,12 @@ export default function UniformManager({
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-lg font-bold text-brand-text mb-3">Nội dung chi tiết</label>
-                  <textarea
-                    className="min-h-48 w-full border-2 border-brand-red/30 rounded-xl p-4 text-lg focus:ring-4 focus:ring-brand-yellow outline-none resize-y transition-all"
-                    placeholder={isReenactment ? "Nội dung lịch sử, diễn giải và thông tin chi tiết..." : "Lịch sử..."}
+                <div className="min-w-0 md:col-span-2">
+                  <RichTextEditor
+                    label="Nội dung chi tiết"
                     value={formData.history}
-                    onChange={(e) => setFormData({ ...formData, history: e.target.value })}
+                    onChange={(history) => setFormData((current) => ({ ...current, history }))}
+                    disabled={loading}
                   />
                 </div>
 

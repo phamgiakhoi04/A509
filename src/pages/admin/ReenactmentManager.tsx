@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
 import UniformManager from "@/pages/admin/UniformManager";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import {
   AlertCircle,
   ArrowRight,
@@ -189,13 +190,9 @@ export default function ReenactmentManager() {
   };
 
   return (
-    <div className="admin-page min-h-full bg-[#faf8f3] p-5 font-body md:p-8">
+    <div className="admin-page min-h-full bg-[#faf8f3] p-4 font-body sm:p-6 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-3xl border border-brand-red/15 bg-white px-6 py-7 shadow-pop md:px-8">
-          <h1 className="font-display text-3xl font-black uppercase text-brand-redDark md:text-4xl">
-            Quản lý phục dựng
-          </h1>
-        </header>
+        <AdminPageHeader title="Quản lý phục dựng" />
 
         {setupError && (
           <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">

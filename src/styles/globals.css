@@ -40,3 +40,39 @@ a {
 .prose-like h2 { @apply text-2xl font-bold tracking-tight mt-8 mb-4 text-brand-red; }
 .prose-like ul { @apply list-disc pl-5 space-y-2 text-brand-text; }
 .prose-like strong { @apply font-bold text-brand-redDark; }
+
+.article-rich-text {
+  overflow-wrap: anywhere;
+}
+
+.article-rich-text p {
+  white-space: break-spaces;
+}
+
+.article-rich-text p:empty::after {
+  content: "\00a0";
+}
+
+.article-rich-text h2,
+.article-rich-text h3 {
+  @apply mb-2 mt-4 font-bold leading-snug;
+}
+
+.article-rich-text h2 { font-size: 1.4em; }
+.article-rich-text h3 { font-size: 1.2em; }
+.article-rich-text > :first-child { margin-top: 0; }
+.article-rich-text ul { @apply my-2 list-disc ps-7; }
+.article-rich-text ol { @apply my-2 list-decimal ps-7; }
+.article-rich-text li > :is(ul, ol) { margin-block: 0; }
+
+.article-editor-select {
+  @apply h-9 max-w-full rounded border border-gray-300 bg-white px-2 text-sm font-normal disabled:opacity-50;
+}
+
+.article-editor-button {
+  @apply inline-flex size-9 items-center justify-center rounded text-gray-700 hover:bg-gray-200 focus-visible:outline-brand-red disabled:opacity-40;
+}
+
+.article-editor-button[aria-pressed="true"] {
+  @apply bg-red-100 text-brand-redDark;
+}

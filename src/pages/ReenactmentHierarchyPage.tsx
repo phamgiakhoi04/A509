@@ -5,6 +5,7 @@ import { Link, useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { publicContentApi } from "@/api/publicContentApi";
 import FlexGallery from "@/components/FlexGallery";
+import RichTextContent from "@/components/editor/RichTextContent";
 import ContentPageLayout, {
   ContentPageTitle,
 } from "@/components/layout/ContentPageLayout";
@@ -264,9 +265,11 @@ function Detail({
                       </p>
                     )}
                     {item.history && (
-                      <p className="mb-7 whitespace-pre-line text-[17px] leading-7 text-[#444]">
-                        {item.history}
-                      </p>
+                      <RichTextContent
+                        value={item.history}
+                        legacyWhitespace="whitespace-pre-line"
+                        className="mb-7 text-[17px] leading-7 text-[#444]"
+                      />
                     )}
                     {images.length ? (
                       <FlexGallery images={images} title={item.name} />

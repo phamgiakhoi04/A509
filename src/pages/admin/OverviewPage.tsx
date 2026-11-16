@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Activity, Users, Eye, Globe, FileText, RefreshCw } from "lucide-react";
 import axiosClient from "@/api/axiosClient";
 import { apiError } from "@/utils/apiError";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 type Group = { label: string; total: number }[];
 type Overview = {
   days: number;
@@ -46,40 +47,33 @@ export default function OverviewPage() {
     return () => abort.abort();
   }, [days, refresh]);
   return (
-    <main className="admin-page mx-auto max-w-7xl space-y-6 p-5 md:p-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.2em] text-gray-500">
-            A509 · Quản trị
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-brand-red">
-            Tổng quan hoạt động
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Dữ liệu thực · Ngày thống kê theo UTC
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <select
-            aria-label="Khoảng thời gian"
-            className="rounded-lg border bg-white p-3"
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-          >
-            <option value={7}>7 ngày</option>
-            <option value={30}>30 ngày</option>
-            <option value={90}>90 ngày</option>
-          </select>
-          <button
-            aria-label="Làm mới"
-            disabled={loading}
-            className="rounded-lg border bg-white p-3 disabled:opacity-40"
-            onClick={() => setRefresh((n) => n + 1)}
-          >
-            <RefreshCw size={20} />
-          </button>
-        </div>
-      </header>
+    <div className="admin-page mx-auto max-w-7xl space-y-6 p-4 sm:p-6 md:p-8">
+      <AdminPageHeader
+        title="Tổng quan hoạt động"
+        description="Dữ liệu thực · Ngày thống kê theo UTC"
+        actions={
+          <>
+            <select
+              aria-label="Khoảng thời gian"
+              className="rounded-lg border bg-white p-3"
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+            >
+              <option value={7}>7 ngày</option>
+              <option value={30}>30 ngày</option>
+              <option value={90}>90 ngày</option>
+            </select>
+            <button
+              aria-label="Làm mới"
+              disabled={loading}
+              className="rounded-lg border bg-white p-3 disabled:opacity-40"
+              onClick={() => setRefresh((n) => n + 1)}
+            >
+              <RefreshCw size={20} />
+            </button>
+          </>
+        }
+      />
       {error && (
         <div
           role="alert"
@@ -221,7 +215,7 @@ export default function OverviewPage() {
           </>
         )
       )}
-    </main>
+    </div>
   );
 }
 function Row({ label, value }: { label: string; value: number }) {

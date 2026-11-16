@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getLocalizedArticleText } from "@/utils/articleTranslation";
 import ContentPageHeading from "@/components/layout/ContentPageHeading";
 import SocialLinks from "@/components/SocialLinks";
+import RichTextContent from "@/components/editor/RichTextContent";
 import {
   articleSection,
   sectionLabels,
@@ -109,9 +110,10 @@ export default function ArticleDetailPage() {
             className="mt-6 max-h-[520px] w-full object-cover"
           />
         )}
-        <div className="mt-6 whitespace-pre-wrap text-[17px] leading-relaxed text-gray-800">
-          {localized.content}
-        </div>
+        <RichTextContent
+          value={localized.content}
+          className="mt-6 text-[17px] leading-relaxed text-gray-800"
+        />
         {images.map((image) => (
           <figure key={image.id} className="mt-6">
             <SensitiveImage

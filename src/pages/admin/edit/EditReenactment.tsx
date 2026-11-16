@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
 import { apiError } from "@/utils/apiError";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 export default function EditReenactment() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -47,16 +48,8 @@ export default function EditReenactment() {
     }
   }
   return (
-    <div className="admin-page mx-auto max-w-3xl p-6 md:p-8">
-      <button
-        onClick={() => navigate("/admin/phuc-dung")}
-        className="mb-6 text-brand-red"
-      >
-        ← Quay lại phục dựng
-      </button>
-      <h1 className="mb-6 border-b border-brand-red pb-4 text-3xl font-bold text-brand-red">
-        Chỉnh sửa quốc gia
-      </h1>
+    <div className="admin-page mx-auto max-w-5xl space-y-6 p-4 sm:p-6 md:p-8">
+      <AdminPageHeader title="Chỉnh sửa quốc gia" backTo="/admin/phuc-dung" />
       {error && (
         <p role="alert" className="mb-4 text-red-700">
           {error}
