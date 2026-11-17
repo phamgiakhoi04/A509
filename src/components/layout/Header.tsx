@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const bannerImage = `${import.meta.env.BASE_URL}images/a509-header`;
@@ -375,10 +375,7 @@ export default function Header() {
                           `
                         }
                       >
-                        <ChevronRight
-                          size={14}
-                          className="shrink-0 text-white"
-                        />
+                        <span aria-hidden="true" className="h-[14px] w-[14px] shrink-0" />
 
                         <span>{language === "en" ? englishDropdownLabels[dropdownItem.to] : dropdownItem.label}</span>
                       </NavLink>
@@ -513,7 +510,7 @@ export default function Header() {
                             setIsMenuOpen(false)
                           }
                         >
-                          <ChevronRight size={12} />
+                          <span aria-hidden="true" className="h-3 w-3" />
 
                           {language === "en" ? englishDropdownLabels[dropdownItem.to] : dropdownItem.label}
                         </Link>
