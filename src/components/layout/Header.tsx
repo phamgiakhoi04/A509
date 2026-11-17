@@ -106,20 +106,20 @@ const englishNavLabels: Record<string, string> = {
 };
 
 const englishDropdownLabels: Record<string, string> = {
-  "/hoat-dong/phuc-dung": "UNIFORM REENACTMENT",
+  "/hoat-dong/phuc-dung": "UNIFORM RECONSTRUCTION",
   "/hoat-dong/nghien-cuu": "RESEARCH",
-  "/tai-lieu/quan-trang": "UNIFORMS",
-  "/tai-lieu/anh-tu-lieu": "ARCHIVAL PHOTOS",
-  "/tai-lieu/hoi-uc-ccb": "VETERANS’ MEMOIRS",
+  "/tai-lieu/quan-trang": "GEARS & UNIFORMS",
+  "/tai-lieu/anh-tu-lieu": "PHOTO ARCHIVE",
+  "/tai-lieu/hoi-uc-ccb": "VETERAN'S MEMOIRS",
   "/tai-lieu/thu-vien": "LIBRARY",
-  "/tai-lieu/nghien-cuu": "REFERENCE",
-  "/tin-tuc/thoi-su": "CURRENT AFFAIRS",
+  "/tai-lieu/nghien-cuu": "REFERENCES",
+  "/tin-tuc/thoi-su": "CURRENT EVENTS",
   "/tin-tuc/phong-su": "REPORTS",
-  "/kham-pha/tim-hieu": "LEARN",
+  "/kham-pha/tim-hieu": "DISCOVERY",
   "/kham-pha/diy": "DIY",
-  "/kham-pha/cac-van-de": "TOPICS",
-  "/van-hoa/trong-nuoc": "DOMESTIC",
-  "/van-hoa/ngoai-nuoc": "INTERNATIONAL",
+  "/kham-pha/cac-van-de": "AFFAIRS",
+  "/van-hoa/trong-nuoc": "VIETNAM",
+  "/van-hoa/ngoai-nuoc": "WORLDWIDE",
 };
 
 // =====================================================
