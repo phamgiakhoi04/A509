@@ -4,6 +4,7 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { authApi } from "@/api/authApi";
+import { maxUploadFileMiB } from "@/api/axiosClient";
 import type { User } from "@/types/models";
 import {
   X,
@@ -50,8 +51,10 @@ export default function Profile({ user, onClose, onUpdateSuccess }: Props) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError(uiText("Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB."));
+    if (file.size > maxUploadFileMiB * 1024 * 1024) {
+      setError(uiLanguage === "en"
+        ? `Please choose an image smaller than ${maxUploadFileMiB} MB.`
+        : `Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn ${maxUploadFileMiB} MB.`);
       event.target.value = "";
       return;
     }

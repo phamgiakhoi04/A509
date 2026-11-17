@@ -9,7 +9,7 @@ export type ContactRequest = {
 
 export const contactApi = {
   send: async (payload: ContactRequest) => {
-    const response = await axiosClient.post<{ message: string }>("/api/contact", payload);
+    const response = await axiosClient.post<{ message: string }>("/api/contact", payload, { timeout: 30000 });
     return response.data;
   },
 };

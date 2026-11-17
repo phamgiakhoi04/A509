@@ -9,6 +9,8 @@ const configuredApiUrl =
 const apiBaseUrl = configuredApiUrl
   ? configuredApiUrl.replace(/\/+$/, "").replace(/\/api$/, "")
   : "http://localhost:8080";
+const uploadRequestMiB = Number(import.meta.env.VITE_UPLOAD_REQUEST_MIB) || 30;
+export const maxUploadFileMiB = Math.min(5, uploadRequestMiB);
 
 const axiosClient = axios.create({
   baseURL: apiBaseUrl,
@@ -17,6 +19,20 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
   (config) => {
+    if (config.data instanceof FormData) {
+      const encoder = new TextEncoder();
+      let size = 64;
+      for (const [name, value] of config.data.entries()) {
+        size += 512 + encoder.encode(name).length +
+          (typeof value === "string" ? encoder.encode(value).length : value.size + encoder.encode(value.name).length);
+      }
+      if (size > uploadRequestMiB * 1024 * 1024) {
+        const message = `Tổng dung lượng tải lên vượt ${uploadRequestMiB} MB. Hãy nén ảnh hoặc chia thành nhiều lần tải.`;
+        throw new axios.AxiosError(message, axios.AxiosError.ERR_BAD_REQUEST, config, undefined, {
+          status: 413, statusText: "Payload Too Large", data: message, headers: {}, config,
+        });
+      }
+    }
     const base = import.meta.env.BASE_URL || "/";
     const pathname = window.location.pathname || "";
     const prefix = base.replace(/\/$/, "");

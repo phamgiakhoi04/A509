@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "npm run build && node scripts/generate-pages.mjs",
     "preview": "vite preview",
     "test:session": "node --test tests/session-expiry.test.mjs",
     "test:showcase": "node --test tests/showcase.test.mjs",
-    "test:content-ui": "node --test tests/content-ui.test.mjs"
+    "test:content-ui": "node --test tests/content-ui.test.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "@tiptap/extension-text-align": "^3.34.0",

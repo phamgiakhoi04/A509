@@ -1,0 +1,127 @@
+{
+  "defaultSiteUrl": "https://phamgiakhoi04.github.io/A509/",
+  "siteName": "A509 Research & Reenactment Group",
+  "imagePath": "images/a509-header-900.jpg",
+  "pages": {
+    "/": {
+      "title": "Nghiên cứu và phục dựng lịch sử",
+      "description": "A509 Research & Reenactment Group. Khám phá tư liệu, quân trang và hoạt động phục dựng lịch sử Việt Nam."
+    },
+    "/gioi-thieu": {
+      "title": "Giới thiệu A509",
+      "description": "Tìm hiểu về A509 Research & Reenactment Group, dự án tái hiện lịch sử và tư liệu Việt Nam."
+    },
+    "/hoat-dong": {
+      "title": "Hoạt động",
+      "description": "Theo dõi các hoạt động nghiên cứu và phục dựng trang phục lịch sử của nhóm A509."
+    },
+    "/hoat-dong/nghien-cuu": {
+      "title": "Nghiên cứu",
+      "description": "Các bài viết nghiên cứu lịch sử, quân trang và tư liệu của nhóm A509."
+    },
+    "/hoat-dong/phuc-dung": {
+      "title": "Phục dựng trang phục",
+      "description": "Khám phá tư liệu phục dựng trang phục theo quốc gia, đơn vị và giai đoạn lịch sử."
+    },
+    "/kham-pha": {
+      "title": "Khám phá",
+      "description": "Khám phá các bài tìm hiểu, hướng dẫn thực hành và thảo luận về tư liệu lịch sử."
+    },
+    "/kham-pha/tim-hieu": {
+      "title": "Tìm hiểu",
+      "description": "Tìm hiểu lịch sử và bối cảnh sử dụng quân trang qua các bài viết của A509."
+    },
+    "/kham-pha/diy": {
+      "title": "Tự làm và phục dựng",
+      "description": "Bài viết hướng dẫn thực hành và tự làm trang phục, trang bị phục vụ hoạt động phục dựng."
+    },
+    "/kham-pha/cac-van-de": {
+      "title": "Các vấn đề",
+      "description": "Các chủ đề thảo luận về việc tìm kiếm tư liệu và tái hiện lịch sử."
+    },
+    "/van-hoa": {
+      "title": "Văn hóa",
+      "description": "Các bài viết về văn hóa trong nước và ngoài nước trong bối cảnh nghiên cứu lịch sử."
+    },
+    "/van-hoa/trong-nuoc": {
+      "title": "Văn hóa trong nước",
+      "description": "Tìm đọc bài viết về văn hóa và tư liệu lịch sử Việt Nam."
+    },
+    "/van-hoa/ngoai-nuoc": {
+      "title": "Văn hóa ngoài nước",
+      "description": "Tìm đọc bài viết về văn hóa và tư liệu lịch sử ngoài Việt Nam."
+    },
+    "/tin-tuc": {
+      "title": "Tin tức",
+      "description": "Tin tức, thời sự và phóng sự về hoạt động nghiên cứu và phục dựng lịch sử của A509."
+    },
+    "/tin-tuc/thoi-su": {
+      "title": "Thời sự",
+      "description": "Cập nhật tin thời sự và các hoạt động liên quan đến nghiên cứu, phục dựng lịch sử."
+    },
+    "/tin-tuc/phong-su": {
+      "title": "Phóng sự",
+      "description": "Đọc các bài phóng sự về sự kiện, tư liệu và hoạt động phục dựng lịch sử."
+    },
+    "/tai-lieu": {
+      "title": "Tài liệu",
+      "description": "Tra cứu quân trang, ảnh tư liệu, hồi ức cựu chiến binh, thư viện và từ điển lịch sử của A509."
+    },
+    "/tai-lieu/quan-trang": {
+      "title": "Quân trang",
+      "description": "Tra cứu thông tin và hình ảnh quân trang, trang phục và hiện vật lịch sử trong danh mục A509."
+    },
+    "/tai-lieu/anh-tu-lieu": {
+      "title": "Ảnh tư liệu",
+      "description": "Khám phá các bộ ảnh và bài viết tư liệu lịch sử."
+    },
+    "/tai-lieu/hoi-uc-ccb": {
+      "title": "Hồi ức cựu chiến binh",
+      "description": "Đọc các câu chuyện và hồi ức của cựu chiến binh."
+    },
+    "/tai-lieu/thu-vien": {
+      "title": "Thư viện",
+      "description": "Thư viện bài viết và tài liệu phục vụ nghiên cứu lịch sử."
+    },
+    "/tai-lieu/tu-dien": {
+      "title": "Từ điển",
+      "description": "Giải thích và tra cứu thuật ngữ về quân trang, trang phục và tư liệu lịch sử."
+    },
+    "/lien-he": {
+      "title": "Liên hệ",
+      "description": "Liên hệ nhóm A509 để trao đổi, đóng góp tư liệu hoặc gửi góp ý."
+    },
+    "/tim-kiem": {
+      "title": "Tìm kiếm",
+      "description": "Tìm kiếm bài viết, tư liệu và quân trang trên A509.",
+      "noindex": true
+    },
+    "/reset-password": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Đặt lại mật khẩu tài khoản A509.",
+      "noindex": true
+    }
+  },
+  "aliases": {
+    "/about": "/gioi-thieu",
+    "/phuc-dung": "/hoat-dong/phuc-dung",
+    "/quan-trang": "/tai-lieu/quan-trang",
+    "/tin-tuc/chia-se-kinh-nghiem": "/tin-tuc/phong-su",
+    "/tin-tuc/goc-nhin": "/tai-lieu/hoi-uc-ccb",
+    "/tin-tuc/nuoc-ngoai": "/tai-lieu/thu-vien",
+    "/tai-lieu/chia-se-kinh-nghiem": "/tai-lieu/anh-tu-lieu",
+    "/tai-lieu/goc-nhin": "/tai-lieu/hoi-uc-ccb",
+    "/tai-lieu/nuoc-ngoai": "/tai-lieu/thu-vien",
+    "/tai-lieu/nghien-cuu": "/tai-lieu/tu-dien"
+  },
+  "adminPages": [
+    "/admin",
+    "/admin/dashboard",
+    "/admin/quan-trang",
+    "/admin/phuc-dung",
+    "/admin/tin-tuc",
+    "/admin/tai-lieu",
+    "/admin/users",
+    "/admin/ban-dich"
+  ]
+}

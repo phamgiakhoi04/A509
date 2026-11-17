@@ -3,6 +3,9 @@ import { Link, NavLink } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const bannerImage = `${import.meta.env.BASE_URL}images/a509-header`;
+const bannerSrcSet = [480, 960, 1800].map((width) => `${bannerImage}-${width}.webp ${width}w`).join(", ");
+
 // MENU CHÍNH
 
 const navLinks = [
@@ -217,19 +220,16 @@ export default function Header() {
           ================================================= */}
 
       <div className="relative aspect-[3/1] max-h-36 w-full overflow-hidden bg-[#333] md:aspect-[5.3/1] md:max-h-none">
-        {/* Ảnh nền */}
-        <img
-          src={`${import.meta.env.BASE_URL}images/A509 Header.jpg`}
-          alt="A509 Research & Reenactment Group"
-          className="
-            absolute
-            inset-0
-            h-full
-            w-full
-            object-cover
-            object-[center_43%]
-          "
-        />
+        <picture>
+          <source type="image/webp" srcSet={bannerSrcSet} sizes="(max-width: 900px) 100vw, 900px" />
+          <img
+            src={`${bannerImage}-900.jpg`}
+            alt=""
+            width={900}
+            height={300}
+            className="absolute inset-0 h-full w-full object-cover object-[center_43%]"
+          />
+        </picture>
 
         {/* Lớp phủ tối */}
         <div className="absolute inset-0 bg-black/35" />
@@ -276,7 +276,7 @@ export default function Header() {
         {/* -------------------------------------------------
             DESKTOP NAVIGATION
             ------------------------------------------------- */}
-        <div className="relative hidden min-h-[48px] w-full items-stretch justify-between pl-0 pr-6 md:flex">
+        <div className="relative hidden min-h-[48px] w-full items-stretch justify-between pl-0 pr-6 min-[920px]:flex">
           {/* Menu chính */}
           {navLinks.map((item) =>
             item.hasDropdown ? (
@@ -337,6 +337,8 @@ export default function Header() {
 
                     group-hover:visible
                     group-hover:opacity-100
+                    group-focus-within:visible
+                    group-focus-within:opacity-100
                   "
                 >
                   <div
@@ -428,7 +430,7 @@ export default function Header() {
             MOBILE MENU BUTTON
             ================================================= */}
 
-        <div className="px-3 md:hidden">
+        <div className="px-3 min-[920px]:hidden">
           <button
             type="button"
             aria-label={
@@ -465,7 +467,7 @@ export default function Header() {
               bg-[#292929]
               px-3
               pb-3
-              md:hidden
+              min-[920px]:hidden
             "
           >
             {navLinks.map((item) =>

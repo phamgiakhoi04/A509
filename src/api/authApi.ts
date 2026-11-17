@@ -25,7 +25,7 @@ export const authApi = {
   },
 
   forgotPassword: async (email: string) => {
-    const res = await axiosClient.post("/api/auth/forgot-password", { email: email.trim() });
+    const res = await axiosClient.post("/api/auth/forgot-password", { email: email.trim() }, { timeout: 30000 });
     return res.data;
   },
 

@@ -5,6 +5,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { adminApi } from "@/api/adminApi";
+import { maxUploadFileMiB } from "@/api/axiosClient";
 import Button from "@/components/ui/Button";
 import { UploadCloud, X, Loader2, CheckCircle } from "lucide-react";
 import { Uniform, CountryOption } from "@/types/models";
@@ -117,8 +118,8 @@ export default function EditUniform({
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
 
-    if (files.some((f) => f.size > 5 * 1024 * 1024)) {
-      alert("Mỗi ảnh tối đa 5MB");
+    if (files.some((f) => f.size > maxUploadFileMiB * 1024 * 1024)) {
+      alert(`Mỗi ảnh tối đa ${maxUploadFileMiB} MB`);
       return;
     }
 
@@ -440,7 +441,7 @@ export default function EditUniform({
                 <>
                   <UploadCloud size={64} className="mx-auto mb-4 text-brand-red/60 group-hover:text-brand-yellow transition-colors" />
                   <p className="text-lg font-medium text-brand-text/70 group-hover:text-brand-yellow">
-                    Click hoặc kéo thả ảnh mới (tối đa 5MB mỗi ảnh)
+                    Click hoặc kéo thả ảnh mới (tối đa {maxUploadFileMiB} MB mỗi ảnh)
                   </p>
                 </>
               )}

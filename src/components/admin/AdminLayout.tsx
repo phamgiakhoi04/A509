@@ -1,7 +1,7 @@
 // src/components/admin/AdminLayout.tsx
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 export default function AdminLayout() {
@@ -22,7 +22,9 @@ export default function AdminLayout() {
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-        <Outlet />
+        <Suspense fallback={<p role="status" className="p-6">Đang tải trang quản trị…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

@@ -9,7 +9,7 @@ export default function Layout() {
   const [authInitialView, setAuthInitialView] = useState<AuthView>("REGISTER");
   const [resetToken, setResetToken] = useState<string | null>(null);
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const openRegisterModal = () => {
@@ -38,12 +38,17 @@ export default function Layout() {
   // in the same modal as register/forgot-password instead of a separate page.
   useEffect(() => {
     const token = searchParams.get("token") || searchParams.get("resetToken");
-    if (token && (location.pathname === "/reset-password" || location.pathname === "/")) {
+    const path = location.pathname.replace(/\/+$/, "") || "/";
+    if (token && (path === "/reset-password" || path === "/")) {
       setResetToken(token);
       setAuthInitialView("RESET");
       setShowAuthModal(true);
+      const remainingParams = new URLSearchParams(searchParams);
+      remainingParams.delete("token");
+      remainingParams.delete("resetToken");
+      setSearchParams(remainingParams, { replace: true });
     }
-  }, [location.pathname, searchParams]);
+  }, [location.pathname, searchParams, setSearchParams]);
 
   return (
     <div className="min-h-screen bg-[#FBF9F5] text-[#222]">
@@ -68,7 +73,10 @@ export default function Layout() {
 
       {showAuthModal && (
         <AuthModal
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => {
+            setShowAuthModal(false);
+            setResetToken(null);
+          }}
           initialView={authInitialView}
           resetToken={resetToken}
         />

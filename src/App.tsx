@@ -6,29 +6,29 @@ import HomePage from "@/pages/HomePage";
 import UniformPage from "@/pages/UniformPage";
 import UniformDetailPage from "@/pages/UniformDetailPage";
 import ReenactmentPage from "@/pages/ReenactmentPage";
-import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ProtectedRoute from "@/components/admin/ProtectedRoute";
-import UniformManager from "@/pages/admin/UniformManager";
-import ReenactmentManager from "@/pages/admin/ReenactmentManager";
-import EditUniform from "./pages/admin/edit/EditUniform";
-import EditReenactment from "./pages/admin/edit/EditReenactment";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import ArticleDetailPage from "@/pages/ArticleDetailPage";
 import ArticleListPage from "@/pages/ArticleListPage";
-import NewsManager from "@/pages/admin/NewsManager";
-import DocumentManager from "@/pages/admin/DocumentManager";
-import EditArticle from "@/pages/admin/edit/EditArticle";
 import SearchPage from "@/pages/SearchPage";
 import DocumentLandingPage from "@/pages/DocumentPage";
-import UserManager from "@/pages/admin/UserManager";
 import ReenactmentHierarchyPage from "@/pages/ReenactmentHierarchyPage";
 import ImageContextNotice from "@/components/ImageContextNotice";
 import PageViewTracker from "@/components/PageViewTracker";
-import OverviewPage from "@/pages/admin/OverviewPage";
-import TranslationManager from "@/pages/admin/TranslationManager";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const OverviewPage = lazy(() => import("@/pages/admin/OverviewPage"));
+const UniformManager = lazy(() => import("@/pages/admin/UniformManager"));
+const ReenactmentManager = lazy(() => import("@/pages/admin/ReenactmentManager"));
+const NewsManager = lazy(() => import("@/pages/admin/NewsManager"));
+const DocumentManager = lazy(() => import("@/pages/admin/DocumentManager"));
+const UserManager = lazy(() => import("@/pages/admin/UserManager"));
+const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
+const EditUniform = lazy(() => import("@/pages/admin/edit/EditUniform"));
+const EditReenactment = lazy(() => import("@/pages/admin/edit/EditReenactment"));
+const EditArticle = lazy(() => import("@/pages/admin/edit/EditArticle"));
 
 export default function App() {
   const { language: uiLanguage } = useUILanguage();
@@ -308,3 +308,4 @@ export default function App() {
     </>
   );
 }
+import { lazy } from "react";
