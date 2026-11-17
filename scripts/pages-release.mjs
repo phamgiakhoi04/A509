@@ -58,7 +58,7 @@ async function protectPages(directory, apiOrigin) {
   for (const entry of entries) {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) await protectPages(path, apiOrigin);
-    else if (entry.isFile() && path.endsWith(".html")) {
+    else if (entry.isFile() && (entry.name === "index.html" || entry.name === "404.html")) {
       const html = await readFile(path, "utf8");
       await writeFile(path, addPagesPolicy(html, apiOrigin));
     }
